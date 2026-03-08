@@ -1,0 +1,54 @@
+# Backend .gitignore
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+*.js
+!src/**/*.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+error.log
+combined.log
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.swp
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Upload directory
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Production
+.env.production
+.env.production.local
+
+# Cache
+.eslintcache

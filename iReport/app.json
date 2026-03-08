@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "iReport",
+    "slug": "ireport",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./iReport/assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./iReport/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.ireport.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./iReport/assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.ireport.app"
+    },
+    "web": {
+      "favicon": "./iReport/assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to upload evidence.",
+          "cameraPermission": "The app accesses your camera to take photos for incident reports."
+        }
+      ]
+    ]
+  }
+}
