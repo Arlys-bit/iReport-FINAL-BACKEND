@@ -127,7 +127,7 @@ export default function StudentDashboard() {
               <TouchableOpacity 
                 key={report.id} 
                 style={[styles.reportCard, { backgroundColor: colors.surface }]}
-                onPress={() => router.push(`/student/reports/${report.id}` as any)}
+                onPress={() => router.push(`/student/report/${report.id}` as any)}
                 activeOpacity={0.7}
               >
                 <View style={styles.reportCardHeader}>
