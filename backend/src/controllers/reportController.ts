@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { IncidentReport } from '@/models';
-import logger from '@/utils/logger';
+import { IncidentReport } from '../models';
+import logger from '../utils/logger';
 
 export const createReport = async (req: Request, res: Response, next: NextFunction) => {
   try {

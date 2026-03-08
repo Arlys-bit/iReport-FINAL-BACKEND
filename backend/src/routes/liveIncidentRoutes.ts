@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as liveIncidentController from '@/controllers/liveIncidentController';
-import { authMiddleware } from '@/middleware/auth';
+import * as liveIncidentController from '../controllers/liveIncidentController';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 

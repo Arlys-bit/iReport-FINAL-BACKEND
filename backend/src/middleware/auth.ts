@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 declare global {
   namespace Express {

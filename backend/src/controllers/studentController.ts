@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { Student, GradeLevel, Section } from '@/models';
-import logger from '@/utils/logger';
+import { Student, GradeLevel, Section } from '../models';
+import logger from '../utils/logger';
 
 export const getStudents = async (req: Request, res: Response, next: NextFunction) => {
   try {

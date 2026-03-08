@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { LiveIncident } from '@/models';
-import logger from '@/utils/logger';
+import { LiveIncident } from '../models';
+import logger from '../utils/logger';
 
 export const createLiveIncident = async (req: Request, res: Response, next: NextFunction) => {
   try {

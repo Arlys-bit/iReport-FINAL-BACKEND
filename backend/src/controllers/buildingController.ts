@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { Building } from '@/models';
-import logger from '@/utils/logger';
+import { Building } from '../models';
+import logger from '../utils/logger';
 
 export const getBuildings = async (req: Request, res: Response, next: NextFunction) => {
   try {

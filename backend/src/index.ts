@@ -1,16 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from '@/config/database';
-import { authMiddleware } from '@/middleware/auth';
-import { errorHandler, notFound } from '@/middleware/errorHandler';
-import logger from '@/utils/logger';
+import { connectDB } from './config/database';
+import { authMiddleware } from './middleware/auth';
+import { errorHandler, notFound } from './middleware/errorHandler';
+import logger from './utils/logger';
 
-import authRoutes from '@/routes/authRoutes';
-import reportRoutes from '@/routes/reportRoutes';
-import liveIncidentRoutes from '@/routes/liveIncidentRoutes';
-import studentRoutes from '@/routes/studentRoutes';
-import buildingRoutes from '@/routes/buildingRoutes';
+import authRoutes from './routes/authRoutes';
+import reportRoutes from './routes/reportRoutes';
+import liveIncidentRoutes from './routes/liveIncidentRoutes';
+import studentRoutes from './routes/studentRoutes';
+import buildingRoutes from './routes/buildingRoutes';
 
 dotenv.config();
 

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { User, Student } from '@/models';
-import { generateToken, hashPassword, comparePassword } from '@/utils/auth';
-import logger from '@/utils/logger';
+import { User, Student } from '../models';
+import { generateToken, hashPassword, comparePassword } from '../utils/auth';
+import logger from '../utils/logger';
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
