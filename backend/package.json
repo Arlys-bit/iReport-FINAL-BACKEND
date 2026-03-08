@@ -35,6 +35,8 @@
     "@types/mongoose": "^5.11.97",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/multer": "^1.4.9",
+    "@types/cors": "^2.8.15",
+    "@types/bcryptjs": "^2.4.4",
     "typescript": "^5.2.2",
     "ts-node-dev": "^2.0.0",
     "ts-node": "^10.9.1",

@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from '@/config/database';
-import { authMiddleware, errorHandler, notFound } from '@/middleware/auth';
-import { errorHandler as errorHandlerMiddleware } from '@/middleware/errorHandler';
+import { authMiddleware } from '@/middleware/auth';
+import { errorHandler, notFound } from '@/middleware/errorHandler';
 import logger from '@/utils/logger';
 
 import authRoutes from '@/routes/authRoutes';
@@ -41,7 +41,7 @@ app.use('/api/buildings', buildingRoutes);
 
 // Error handling
 app.use(notFound);
-app.use(errorHandlerMiddleware);
+app.use(errorHandler);
 
 // Start server
 const startServer = async () => {

@@ -1,16 +1,17 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 export const generateToken = (userId: string, role: string): string => {
+  const options: SignOptions = {
+    expiresIn: process.env.JWT_EXPIRE || '7d',
+  };
   return jwt.sign(
     {
       userId,
       role,
     },
-    process.env.JWT_SECRET || 'your_secret',
-    {
-      expiresIn: process.env.JWT_EXPIRE || '7d',
-    }
+    (process.env.JWT_SECRET || 'your_secret') as string,
+    options
   );
 };
 
