@@ -14,6 +14,8 @@ import buildingRoutes from './routes/buildingRoutes';
 
 dotenv.config();
 
+console.log('iReport Backend - Initializing...');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -46,12 +48,21 @@ app.use(errorHandler);
 // Start server
 const startServer = async () => {
   try {
+    console.log('Starting iReport backend...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('MongoDB URI:', process.env.MONGODB_URI ? 'SET' : 'MISSING');
+    console.log('JWT Secret:', process.env.JWT_SECRET ? 'SET' : 'MISSING');
+    console.log('Port:', PORT);
+    
     await connectDB();
+    
     app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Health check: http://localhost:${PORT}/health`);
     });
   } catch (error) {
+    console.error('❌ Failed to start server:', error);
     logger.error('Failed to start server:', error);
     process.exit(1);
   }
