@@ -2,16 +2,15 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 export const generateToken = (userId: string, role: string): string => {
-  const options: SignOptions = {
-    expiresIn: (process.env.JWT_EXPIRE || '7d') as string,
-  };
   return jwt.sign(
     {
       userId,
       role,
     },
     (process.env.JWT_SECRET || 'your_secret') as string,
-    options
+    {
+      expiresIn: (process.env.JWT_EXPIRE || '7d') as string | number,
+    }
   );
 };
 
