@@ -10,6 +10,8 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -27,6 +29,8 @@ import {
   Shield,
   FolderPlus,
   Trash2,
+  Eye,
+  EyeOff,
 } from 'lucide-react-native';
 import { useStudents } from '@/contexts/StudentsContext';
 import { useStaff } from '@/contexts/StaffContext';
@@ -61,6 +65,10 @@ export default function ManagementPage() {
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [showSectionModal, setShowSectionModal] = useState(false);
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
+  const [showStudentConfirmPassword, setShowStudentConfirmPassword] = useState(false);
+  const [showStaffPassword, setShowStaffPassword] = useState(false);
+  const [showStaffConfirmPassword, setShowStaffConfirmPassword] = useState(false);
 
   const [studentForm, setStudentForm] = useState({
     fullName: '',
@@ -735,7 +743,8 @@ export default function ManagementPage() {
       </View>
 
       <Modal visible={showStudentModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
           <View style={[styles.modalHeader, { backgroundColor: colors.surface }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Create Student</Text>
             <TouchableOpacity onPress={() => setShowStudentModal(false)}>
@@ -818,26 +827,36 @@ export default function ManagementPage() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Password <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={[styles.input, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
-                value={studentForm.password}
-                onChangeText={text => setStudentForm(prev => ({ ...prev, password: text }))}
-                placeholder="Enter password"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-              />
+              <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <TextInput
+                  style={[styles.passwordInput, { color: colors.text }]}
+                  value={studentForm.password}
+                  onChangeText={text => setStudentForm(prev => ({ ...prev, password: text }))}
+                  placeholder="Enter password"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry={!showStudentPassword}
+                />
+                <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowStudentPassword(!showStudentPassword)}>
+                  {showStudentPassword ? <EyeOff size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Confirm Password <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={[styles.input, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
-                value={studentForm.confirmPassword}
-                onChangeText={text => setStudentForm(prev => ({ ...prev, confirmPassword: text }))}
-                placeholder="Confirm password"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-              />
+              <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <TextInput
+                  style={[styles.passwordInput, { color: colors.text }]}
+                  value={studentForm.confirmPassword}
+                  onChangeText={text => setStudentForm(prev => ({ ...prev, confirmPassword: text }))}
+                  placeholder="Confirm password"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry={!showStudentConfirmPassword}
+                />
+                <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowStudentConfirmPassword(!showStudentConfirmPassword)}>
+                  {showStudentConfirmPassword ? <EyeOff size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
           <View style={styles.modalFooter}>
@@ -854,10 +873,12 @@ export default function ManagementPage() {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
+        </TouchableWithoutFeedback>
       </Modal>
 
       <Modal visible={showStaffModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
           <View style={[styles.modalHeader, { backgroundColor: colors.surface }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Create Staff Member</Text>
             <TouchableOpacity onPress={() => setShowStaffModal(false)}>
@@ -915,26 +936,36 @@ export default function ManagementPage() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Password <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={[styles.input, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
-                value={staffForm.password}
-                onChangeText={text => setStaffForm(prev => ({ ...prev, password: text }))}
-                placeholder="Enter password"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-              />
+              <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <TextInput
+                  style={[styles.passwordInput, { color: colors.text }]}
+                  value={staffForm.password}
+                  onChangeText={text => setStaffForm(prev => ({ ...prev, password: text }))}
+                  placeholder="Enter password"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry={!showStaffPassword}
+                />
+                <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowStaffPassword(!showStaffPassword)}>
+                  {showStaffPassword ? <EyeOff size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Confirm Password <Text style={styles.required}>*</Text></Text>
-              <TextInput
-                style={[styles.input, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
-                value={staffForm.confirmPassword}
-                onChangeText={text => setStaffForm(prev => ({ ...prev, confirmPassword: text }))}
-                placeholder="Confirm password"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-              />
+              <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <TextInput
+                  style={[styles.passwordInput, { color: colors.text }]}
+                  value={staffForm.confirmPassword}
+                  onChangeText={text => setStaffForm(prev => ({ ...prev, confirmPassword: text }))}
+                  placeholder="Confirm password"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry={!showStaffConfirmPassword}
+                />
+                <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowStaffConfirmPassword(!showStaffConfirmPassword)}>
+                  {showStaffConfirmPassword ? <EyeOff size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
@@ -1027,6 +1058,7 @@ export default function ManagementPage() {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
+        </TouchableWithoutFeedback>
       </Modal>
 
       <Modal visible={showGradeModal} animationType="slide" presentationStyle="pageSheet">
@@ -1921,6 +1953,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     color: colors.text,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  passwordToggle: {
+    paddingRight: 12,
   },
   pickerButton: {
     flexDirection: 'row',

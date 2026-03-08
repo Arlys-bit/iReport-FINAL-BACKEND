@@ -11,10 +11,12 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { AlertCircle, Trash2 } from 'lucide-react-native';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -26,6 +28,7 @@ export default function LoginScreen() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -44,52 +47,66 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
-          <View style={styles.header}>
-            <Image 
-              source={require('@/assets/iReport Icon.png')} 
-              style={styles.headerImage}
-            />
-            <Text style={[styles.title, { color: colors.text }]}>iReport</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to your account</Text>
-          </View>
-
-          <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email"
-                placeholderTextColor={colors.textLight}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                testID="login-email-input"
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.header}>
+              <Image 
+                source={require('@/assets/iReport Icon.png')} 
+                style={styles.headerImage}
               />
+              <Text style={[styles.title, { color: colors.text }]}>iReport</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to your account</Text>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor={colors.textLight}
-                secureTextEntry
-                autoCapitalize="none"
-                testID="login-password-input"
-              />
-            </View>
+            <View style={styles.form}>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter your email"
+                  placeholderTextColor={colors.textLight}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  testID="login-email-input"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+                <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <TextInput
+                    style={[styles.passwordInput, { color: colors.text }]}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    placeholderTextColor={colors.textLight}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    testID="login-password-input"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.passwordToggle}
+                    testID="login-password-toggle"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color={colors.textLight} />
+                    ) : (
+                      <Eye size={20} color={colors.textLight} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
 
             {loginError && (
               <View style={[styles.errorContainer, { backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2' }]}>
@@ -125,6 +142,7 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -178,6 +196,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 4,
+  },
+  passwordToggle: {
+    padding: 8,
   },
   errorContainer: {
     flexDirection: 'row',

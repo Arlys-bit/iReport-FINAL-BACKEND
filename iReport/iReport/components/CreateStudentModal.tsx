@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 interface Props {
   visible: boolean;
@@ -15,6 +16,7 @@ export default function CreateStudentModal({ visible, onClose }: Props) {
   const [lrn, setLrn] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState('');
   const [error, setError] = useState(null as string | null);
 
@@ -23,6 +25,7 @@ export default function CreateStudentModal({ visible, onClose }: Props) {
     setLrn('');
     setEmail('');
     setPassword('');
+    setShowPassword(false);
     setProfilePhoto('');
     setError(null);
   };
@@ -67,16 +70,17 @@ export default function CreateStudentModal({ visible, onClose }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.wrapper}>
-        <View style={styles.sheet}>
-          <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>Create Student Account</Text>
-            <TouchableOpacity onPress={handleClose} testID="create-student-close">
-              <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
-          </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.wrapper}>
+          <View style={styles.sheet}>
+            <View style={styles.headerRow}>
+              <Text style={styles.headerTitle}>Create Student Account</Text>
+              <TouchableOpacity onPress={handleClose} testID="create-student-close">
+                <Text style={styles.closeText}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+            <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
             <View style={styles.photoPlaceholder}>
               <Text style={styles.photoText}>Add Photo
                 <Text style={styles.photoSub}>(Optional)</Text>
@@ -93,7 +97,12 @@ export default function CreateStudentModal({ visible, onClose }: Props) {
             <TextInput value={email} onChangeText={setEmail} placeholder="Enter school email" autoCapitalize="none" keyboardType="email-address" style={styles.input} testID="student-email" />
 
             <Text style={styles.label}>Password *</Text>
-            <TextInput value={password} onChangeText={setPassword} placeholder="Enter password" secureTextEntry style={styles.input} testID="student-password" />
+            <View style={[styles.passwordContainer, { borderColor: colors.border }]}>
+              <TextInput value={password} onChangeText={setPassword} placeholder="Enter password" secureTextEntry={!showPassword} style={styles.passwordInput} testID="student-password" />
+              <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? <EyeOff size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.hintBox}>
               <Text style={styles.hintText}>Students will use their school email and password to log in. Profile photos help prevent prank reports.</Text>
@@ -106,8 +115,9 @@ export default function CreateStudentModal({ visible, onClose }: Props) {
             </TouchableOpacity>
 
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -124,6 +134,9 @@ const styles = StyleSheet.create({
   photoSub: { color: colors.textSecondary, fontSize: 12, display: 'block' as any },
   label: { fontSize: 14, color: colors.text, marginBottom: 6 },
   input: { backgroundColor: '#FAFBFF', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FAFBFF', borderRadius: 8, marginBottom: 12, borderWidth: 1 },
+  passwordInput: { flex: 1, padding: 12, fontSize: 14 },
+  passwordToggle: { paddingRight: 12 },
   hintBox: { backgroundColor: '#F4F8FF', padding: 12, borderRadius: 8, marginBottom: 12 },
   hintText: { color: colors.textSecondary },
   submitButton: { backgroundColor: colors.primary, padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 6 },
