@@ -9,8 +9,8 @@ export const generateToken = (userId: string, role: string): string => {
     },
     (process.env.JWT_SECRET || 'your_secret') as string,
     {
-      expiresIn: (process.env.JWT_EXPIRE || '7d') as string | number,
-    }
+      expiresIn: process.env.JWT_EXPIRE || '7d',
+    } as any
   );
 };
 
