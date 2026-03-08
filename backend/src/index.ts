@@ -23,12 +23,23 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+
 app.use(
   cors({
     origin: (process.env.CORS_ORIGIN || 'http://localhost:8081').split(','),
     credentials: true,
   })
 );
+
+// Default root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the iReport Backend API',
+    status: 'ok',
+    docs: '/API_DOCUMENTATION.md',
+    health: '/health'
+  });
+});
 
 // Routes
 app.get('/health', (req, res) => {
