@@ -40,6 +40,22 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
     advisorId: section?.adviser?._id || section?.advisorId || section?.adviser,
     isActive: section?.isActive !== false,
   });
+  const normalizeStudent = (student: any, index = 0): Student => ({
+    id: String(student?.id || student?._id || `student_${index}`),
+    role: 'student',
+    fullName: String(student?.fullName || ''),
+    email: String(student?.email || student?.schoolEmail || ''),
+    password: String(student?.password || ''),
+    profilePhoto: student?.profilePhoto,
+    createdAt: String(student?.createdAt || new Date().toISOString()),
+    isActive: student?.isActive !== false,
+    lrn: String(student?.lrn || student?.studentId || ''),
+    gradeLevelId: String(student?.gradeLevelId || student?.gradeLevel || ''),
+    sectionId: String(student?.sectionId || student?.section || ''),
+    schoolEmail: String(student?.schoolEmail || student?.email || ''),
+    violationHistory: Array.isArray(student?.violationHistory) ? student.violationHistory : [],
+    assignedTeacherId: student?.assignedTeacherId,
+  });
 
   const studentsQuery = useQuery({
     queryKey: ['students'],
@@ -47,7 +63,8 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
       try {
         // Try API first
         const result: any = await studentsApi.getStudents();
-        return result.data || [];
+        const students = Array.isArray(result) ? result : result?.data || [];
+        return students.map((student: any, index: number) => normalizeStudent(student, index));
       } catch (apiError) {
         logger.warn('API fetch students failed, using local storage:', apiError);
         
@@ -221,6 +238,23 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
         });
       } catch (apiError) {
         logger.warn('API register student failed, continuing with local save:', apiError);
+      }
+
+      // Persist student profile fields to backend students collection as well.
+      try {
+        await studentsApi.createStudent({
+          fullName: newStudent.fullName,
+          email: newStudent.email,
+          schoolEmail: newStudent.schoolEmail,
+          password: newStudent.password,
+          studentId: newStudent.lrn,
+          gradeLevel: newStudent.gradeLevelId,
+          section: newStudent.sectionId,
+          profilePhoto: newStudent.profilePhoto,
+          isActive: true,
+        });
+      } catch (apiError) {
+        logger.warn('API create student failed, continuing with local save:', apiError);
       }
       
       const updated = [...students, newStudent];
