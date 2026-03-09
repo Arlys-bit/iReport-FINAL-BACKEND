@@ -82,6 +82,11 @@ export const authApi = {
     apiClient.post('/auth/login', { email, password }),
   register: (data: any) => apiClient.post('/auth/register', data),
   getProfile: () => apiClient.get('/auth/profile'),
+  getStaff: () => apiClient.get('/auth/staff'),
+  updateStaff: (id: string, data: any) => apiClient.put(`/auth/staff/${id}`, data),
+  changeStaffPassword: (id: string, newPassword: string) =>
+    apiClient.put(`/auth/staff/${id}/password`, { newPassword }),
+  deleteStaff: (id: string) => apiClient.delete(`/auth/staff/${id}`),
 };
 
 // Reports API

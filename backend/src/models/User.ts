@@ -7,6 +7,15 @@ export interface IUser extends Document {
   email: string;
   password: string;
   schoolEmail: string;
+  staffId?: string;
+  position?: string;
+  profilePhoto?: string;
+  permissions?: string[];
+  specialization?: string;
+  rank?: string;
+  clusterRole?: string;
+  assignedGradeLevelIds?: string[];
+  assignedSectionIds?: string[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +48,41 @@ const UserSchema: Schema = new Schema(
       unique: true,
       sparse: true,
     },
+    staffId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    position: {
+      type: String,
+    },
+    profilePhoto: {
+      type: String,
+    },
+    permissions: [
+      {
+        type: String,
+      },
+    ],
+    specialization: {
+      type: String,
+    },
+    rank: {
+      type: String,
+    },
+    clusterRole: {
+      type: String,
+    },
+    assignedGradeLevelIds: [
+      {
+        type: String,
+      },
+    ],
+    assignedSectionIds: [
+      {
+        type: String,
+      },
+    ],
     isActive: {
       type: Boolean,
       default: true,

@@ -12,12 +12,42 @@ const STORAGE_KEYS = {
 
 export const [StaffProvider, useStaff] = createContextHook(() => {
   const queryClient = useQueryClient();
+  const normalizeStaff = (member: any): StaffMember => ({
+    id: String(member?.id || member?._id || `staff_${Date.now()}`),
+    role: member?.role === 'teacher' ? 'teacher' : 'admin',
+    fullName: String(member?.fullName || ''),
+    email: String(member?.email || member?.schoolEmail || ''),
+    password: String(member?.password || ''),
+    schoolEmail: String(member?.schoolEmail || member?.email || ''),
+    staffId: String(member?.staffId || member?.id || member?._id || ''),
+    position: member?.position || (member?.role === 'teacher' ? 'teacher' : 'principal'),
+    permissions: Array.isArray(member?.permissions) ? member.permissions : [],
+    specialization: member?.specialization,
+    rank: member?.rank,
+    clusterRole: member?.clusterRole,
+    assignedGradeLevelIds: member?.assignedGradeLevelIds || [],
+    assignedSectionIds: member?.assignedSectionIds || [],
+    subjectsTaught: member?.subjectsTaught || [],
+    profilePhoto: member?.profilePhoto,
+    isActive: member?.isActive !== false,
+    createdAt: String(member?.createdAt || new Date().toISOString()),
+    lastLogin: member?.lastLogin,
+  });
 
   const staffQuery = useQuery({
     queryKey: ['staffMembers'],
     queryFn: async () => {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.STAFF);
-      return stored ? JSON.parse(stored) : [];
+      try {
+        const result: any = await authApi.getStaff();
+        const staff = Array.isArray(result) ? result : result?.data || [];
+        const normalized = staff.map((member: any) => normalizeStaff(member));
+        await AsyncStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(normalized));
+        return normalized;
+      } catch (apiError) {
+        logger.warn('API fetch staff failed, using local storage:', apiError);
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.STAFF);
+        return stored ? JSON.parse(stored) : [];
+      }
     },
   });
 
@@ -86,19 +116,29 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
         createdAt: new Date().toISOString(),
       };
 
-      // Best-effort backend registration so Render logs show account creation.
-      // Keep local flow for existing app behavior.
       try {
         const backendRole =
           newStaff.role === 'teacher' ? 'teacher' : 'admin';
-        await authApi.register({
+        const created: any = await authApi.register({
           fullName: newStaff.fullName,
           email: newStaff.schoolEmail,
           password: newStaff.password,
           role: backendRole,
+          schoolEmail: newStaff.schoolEmail,
+          staffId: newStaff.staffId,
+          position: newStaff.position,
+          profilePhoto: newStaff.profilePhoto,
+          permissions: newStaff.permissions,
+          specialization: newStaff.specialization,
+          rank: newStaff.rank,
+          clusterRole: newStaff.clusterRole,
+          assignedGradeLevelIds: newStaff.assignedGradeLevelIds,
+          assignedSectionIds: newStaff.assignedSectionIds,
         });
+        queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+        return normalizeStaff(created?.user || newStaff);
       } catch (apiError) {
-        logger.warn('API register staff failed, continuing with local save:', apiError);
+        logger.warn('API register staff failed, falling back to local save:', apiError);
       }
 
       const updatedStaff = [...staff, newStaff];
@@ -127,6 +167,14 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
       adminId: string;
       adminName: string;
     }) => {
+      try {
+        const updated: any = await authApi.updateStaff(id, updates);
+        queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+        return normalizeStaff(updated);
+      } catch (apiError) {
+        logger.warn('API update staff failed, using local storage:', apiError);
+      }
+
       const staff: StaffMember[] = staffQuery.data || [];
       const index = staff.findIndex(s => s.id === id);
       
@@ -167,6 +215,14 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
       adminId: string;
       adminName: string;
     }) => {
+      try {
+        const updated: any = await authApi.updateStaff(staffId, { permissions });
+        queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+        return normalizeStaff(updated);
+      } catch (apiError) {
+        logger.warn('API update permissions failed, using local storage:', apiError);
+      }
+
       const staff: StaffMember[] = staffQuery.data || [];
       const index = staff.findIndex(s => s.id === staffId);
       
@@ -207,6 +263,14 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
       adminId: string;
       adminName: string;
     }) => {
+      try {
+        await authApi.changeStaffPassword(staffId, newPassword);
+        queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+        return true;
+      } catch (apiError) {
+        logger.warn('API change staff password failed, using local storage:', apiError);
+      }
+
       const staff: StaffMember[] = staffQuery.data || [];
       const index = staff.findIndex(s => s.id === staffId);
       
@@ -245,6 +309,14 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
       adminId: string;
       adminName: string;
     }) => {
+      try {
+        await authApi.deleteStaff(staffId);
+        queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+        return true;
+      } catch (apiError) {
+        logger.warn('API delete staff failed, using local storage:', apiError);
+      }
+
       const staff: StaffMember[] = staffQuery.data || [];
       const staffMember = staff.find(s => s.id === staffId);
       

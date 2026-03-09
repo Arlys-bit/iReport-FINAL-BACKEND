@@ -41,7 +41,24 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password, fullName, role, gradeLevel, section } = req.body;
+    const {
+      email,
+      password,
+      fullName,
+      role,
+      gradeLevel,
+      section,
+      schoolEmail,
+      staffId,
+      position,
+      profilePhoto,
+      permissions,
+      specialization,
+      rank,
+      clusterRole,
+      assignedGradeLevelIds,
+      assignedSectionIds,
+    } = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -61,6 +78,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         gradeLevel,
         section,
         schoolEmail: email,
+        studentId: req.body.studentId || req.body.lrn,
       });
     } else {
       user = new User({
@@ -68,7 +86,16 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         password: hashedPassword,
         fullName,
         role,
-        schoolEmail: email,
+        schoolEmail: schoolEmail || email,
+        staffId,
+        position,
+        profilePhoto,
+        permissions,
+        specialization,
+        rank,
+        clusterRole,
+        assignedGradeLevelIds,
+        assignedSectionIds,
       });
     }
 
@@ -105,6 +132,90 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
     return res.json(user);
   } catch (error) {
     logger.error('Get profile error:', error);
+    next(error);
+  }
+};
+
+export const getStaffUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const staffUsers = await User.find({
+      role: { $in: ['admin', 'teacher'] },
+      isActive: true,
+    }).select('-password');
+
+    return res.json(staffUsers);
+  } catch (error) {
+    logger.error('Get staff users error:', error);
+    next(error);
+  }
+};
+
+export const updateStaffUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const updates = { ...req.body };
+    delete (updates as any).password;
+
+    const user = await User.findOneAndUpdate(
+      { _id: id, role: { $in: ['admin', 'teacher'] } },
+      updates,
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'Staff user not found' });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    logger.error('Update staff user error:', error);
+    next(error);
+  }
+};
+
+export const changeStaffPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({ error: 'newPassword must be at least 6 characters' });
+    }
+
+    const hashed = await hashPassword(newPassword);
+    const user = await User.findOneAndUpdate(
+      { _id: id, role: { $in: ['admin', 'teacher'] } },
+      { password: hashed },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'Staff user not found' });
+    }
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    logger.error('Change staff password error:', error);
+    next(error);
+  }
+};
+
+export const deleteStaffUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findOneAndUpdate(
+      { _id: id, role: { $in: ['admin', 'teacher'] } },
+      { isActive: false },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'Staff user not found' });
+    }
+
+    return res.json({ message: 'Staff user deleted successfully' });
+  } catch (error) {
+    logger.error('Delete staff user error:', error);
     next(error);
   }
 };
