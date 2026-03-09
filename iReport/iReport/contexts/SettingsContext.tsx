@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
 
-export type Language = 'en' | 'fil' | 'ceb';
+export type Language = 'en' | 'fil';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 interface Settings {
@@ -15,6 +15,7 @@ interface Settings {
 }
 
 const STORAGE_KEY = 'app_settings';
+const LAST_SESSION_SETTINGS_KEY = 'app_settings_last_session';
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'light',
@@ -37,7 +38,6 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     language: 'Language',
     english: 'English',
     filipino: 'Filipino',
-    cebuano: 'Cebuano',
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -80,7 +80,6 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     language: 'Wika',
     english: 'Ingles',
     filipino: 'Filipino',
-    cebuano: 'Cebuano',
     save: 'I-save',
     cancel: 'Kanselahin',
     delete: 'Tanggalin',
@@ -110,49 +109,6 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     staffId: 'Staff ID',
     schoolEmail: 'School Email',
     professionalRank: 'Propesyonal na Ranggo',
-  },
-  ceb: {
-    dashboard: 'Dashboard',
-    students: 'Mga Estudyante',
-    staff: 'Mga Tawo sa Staff',
-    reports: 'Mga Report',
-    settings: 'Mga Setting',
-    profile: 'Profile',
-    logout: 'Logout',
-    darkMode: 'Dark Mode',
-    language: 'Pinulongan',
-    english: 'Iningles',
-    filipino: 'Filipino',
-    cebuano: 'Cebuano',
-    save: 'I-save',
-    cancel: 'Kanselahon',
-    delete: 'Tangtangon',
-    edit: 'I-edit',
-    add: 'Idugang',
-    remove: 'Tangtangon',
-    specialization: 'Espesyalisasyon',
-    rank: 'Ranggo',
-    teaching: 'Nagtudlo',
-    notTeaching: 'Wala Nagtudlo',
-    isTeaching: 'Nagtudlo ba',
-    addSpecialization: 'Idugang og Espesyalisasyon',
-    addRank: 'Idugang og Ranggo',
-    customSpecializations: 'Mga Custom nga Espesyalisasyon',
-    customRanks: 'Mga Custom nga Ranggo',
-    name: 'Ngalan',
-    email: 'Email',
-    position: 'Posisyon',
-    permissions: 'Mga Pagtugot',
-    managePermissions: 'Pagdumala sa mga Pagtugot',
-    changePassword: 'Usba ang Password',
-    basicInformation: 'Basic nga Impormasyon',
-    teachingAssignment: 'Assignment sa Pagtudlo',
-    gradeLevel: 'Grade Level',
-    section: 'Seksyon',
-    clusterRole: 'Papel sa Cluster',
-    staffId: 'Staff ID',
-    schoolEmail: 'School Email',
-    professionalRank: 'Propesyonal nga Ranggo',
   },
 };
 
@@ -187,7 +143,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   // Create per-user storage key based on current user's ID
   const getUserStorageKey = (userId?: string) => {
     if (!userId) {
-      return STORAGE_KEY;
+      return LAST_SESSION_SETTINGS_KEY;
     }
     return `${STORAGE_KEY}_user_${userId}`;
   };
@@ -198,7 +154,29 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     queryKey: ['appSettings', currentUser?.id],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : DEFAULT_SETTINGS;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.language && !['en', 'fil'].includes(parsed.language)) {
+          return { ...parsed, language: 'en' as Language };
+        }
+        return parsed;
+      }
+
+      // If no session snapshot yet, use legacy/global key once, then persist as last session.
+      if (!currentUser?.id) {
+        const legacy = await AsyncStorage.getItem(STORAGE_KEY);
+        if (legacy) {
+          const parsed = JSON.parse(legacy);
+          const sanitized =
+            parsed?.language && !['en', 'fil'].includes(parsed.language)
+              ? { ...parsed, language: 'en' as Language }
+              : parsed;
+          await AsyncStorage.setItem(LAST_SESSION_SETTINGS_KEY, JSON.stringify(sanitized));
+          return sanitized;
+        }
+      }
+
+      return DEFAULT_SETTINGS;
     },
   });
 
@@ -212,9 +190,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }, [settings.theme]);
 
+  useEffect(() => {
+    // Keep login-screen preferences aligned with the currently active account.
+    if (currentUser?.id && settingsQuery.data) {
+      AsyncStorage.setItem(LAST_SESSION_SETTINGS_KEY, JSON.stringify(settingsQuery.data)).catch(() => {});
+    }
+  }, [currentUser?.id, settingsQuery.data]);
+
   const saveSettingsMutation = useMutation({
     mutationFn: async (newSettings: Settings) => {
       await AsyncStorage.setItem(storageKey, JSON.stringify(newSettings));
+      await AsyncStorage.setItem(LAST_SESSION_SETTINGS_KEY, JSON.stringify(newSettings));
       return newSettings;
     },
     onSuccess: () => {

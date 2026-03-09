@@ -13,14 +13,16 @@ import { Users, FileText, Bell, GraduationCap, ChevronRight, ChevronLeft } from 
 import { useAuth } from '@/contexts/AuthContext';
 import { useReports } from '@/contexts/ReportContext';
 import { useStudents } from '@/contexts/StudentsContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { StaffMember, Student, IncidentReport } from '@/types';
-import colors from '@/constants/colors';
 
 export default function TeacherDashboard() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const { getReportsByTeacher, getUnreadNotificationCount } = useReports();
   const { students, gradeLevels, sections, getStudentsByTeacher } = useStudents();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors);
 
   const staffMember = currentUser as StaffMember;
 
@@ -91,24 +93,24 @@ export default function TeacherDashboard() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#D1FAE5' }]}>
-              <Users size={22} color="#10B981" />
+            <View style={[styles.statIcon, { backgroundColor: isDark ? '#064E3B' : '#D1FAE5' }]}>
+              <Users size={22} color={isDark ? '#6EE7B7' : '#10B981'} />
             </View>
             <Text style={styles.statNumber}>{myStudents.length}</Text>
             <Text style={styles.statLabel}>My Students</Text>
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#DBEAFE' }]}>
-              <FileText size={22} color="#3B82F6" />
+            <View style={[styles.statIcon, { backgroundColor: isDark ? '#1E3A8A' : '#DBEAFE' }]}>
+              <FileText size={22} color={isDark ? '#93C5FD' : '#3B82F6'} />
             </View>
             <Text style={styles.statNumber}>{myReports.length}</Text>
             <Text style={styles.statLabel}>Reports</Text>
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#FEF3C7' }]}>
-              <GraduationCap size={22} color="#F59E0B" />
+            <View style={[styles.statIcon, { backgroundColor: isDark ? '#3A2A05' : '#FEF3C7' }]}>
+              <GraduationCap size={22} color={isDark ? '#FCD34D' : '#F59E0B'} />
             </View>
             <Text style={styles.statNumber}>{assignedSections.length}</Text>
             <Text style={styles.statLabel}>Sections</Text>
@@ -117,11 +119,11 @@ export default function TeacherDashboard() {
 
         {pendingReports.length > 0 && (
           <View style={styles.alertSection}>
-            <View style={styles.alertCard}>
+            <View style={[styles.alertCard, { backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2' }]}>
               <FileText size={20} color="#DC2626" />
               <View style={styles.alertContent}>
-                <Text style={styles.alertTitle}>Pending Reports</Text>
-                <Text style={styles.alertText}>
+                <Text style={[styles.alertTitle, { color: isDark ? '#FCA5A5' : '#991B1B' }]}>Pending Reports</Text>
+                <Text style={[styles.alertText, { color: isDark ? '#FECACA' : '#B91C1C' }]}>
                   {pendingReports.length} report{pendingReports.length > 1 ? 's' : ''} from your students need attention
                 </Text>
               </View>
@@ -254,7 +256,7 @@ function getTypeColor(type: string): string {
   }
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -358,7 +360,6 @@ const styles = StyleSheet.create({
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
     borderRadius: 12,
     padding: 14,
     gap: 12,
@@ -369,12 +370,10 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#991B1B',
     marginBottom: 2,
   },
   alertText: {
     fontSize: 13,
-    color: '#B91C1C',
   },
   sectionsSection: {
     paddingHorizontal: 16,

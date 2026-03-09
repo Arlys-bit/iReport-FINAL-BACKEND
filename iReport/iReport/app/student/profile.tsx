@@ -29,50 +29,50 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudents } from '@/contexts/StudentsContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Student } from '@/types';
-import colors from '@/constants/colors';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'fil', name: 'Filipino' },
-  { code: 'ceb', name: 'Cebuano' },
 ];
 
 export default function StudentProfile() {
   const { currentUser, updateCurrentUser, logout } = useAuth();
   const { gradeLevels, sections, updateStudent, resetStudentPassword } = useStudents();
+  const { isDark, setTheme, language, setLanguage, colors } = useSettings();
+  const styles = getStyles(colors);
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   const student = currentUser as Student;
   const studentAny = student as any;
-  const currentGrade = gradeLevels.find(
-    g =>
-      g.id === studentAny?.gradeLevelId ||
-      g.id === studentAny?.gradeLevel ||
-      g.name === studentAny?.gradeLevel
-  );
   const currentSection = sections.find(
     s =>
       s.id === studentAny?.sectionId ||
       s.id === studentAny?.section ||
       s.name === studentAny?.section
   );
+  const currentGrade = gradeLevels.find(
+    g =>
+      g.id === studentAny?.gradeLevelId ||
+      g.id === studentAny?.gradeLevel ||
+      g.name === studentAny?.gradeLevel ||
+      g.id === currentSection?.gradeLevelId
+  );
   const displayLRN = studentAny?.lrn || studentAny?.studentId || studentAny?.id || 'N/A';
   const displaySchoolEmail = studentAny?.schoolEmail || studentAny?.email || 'N/A';
   const displayGradeSection =
     currentGrade && currentSection
       ? `${currentGrade.name} - Section ${currentSection.name}`
-      : studentAny?.gradeLevel && studentAny?.section
-      ? `${studentAny.gradeLevel} - Section ${studentAny.section}`
       : currentGrade
       ? `${currentGrade.name}`
+      : currentSection
+      ? `Section ${currentSection.name}`
       : 'Not assigned';
 
   const handlePickImage = async () => {
@@ -275,8 +275,8 @@ export default function StudentProfile() {
               <Text style={styles.settingLabel}>Dark Mode</Text>
             </View>
             <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
+              value={isDark}
+              onValueChange={(value) => setTheme(value ? 'dark' : 'light')}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.surface}
             />
@@ -289,7 +289,7 @@ export default function StudentProfile() {
               </View>
               <View>
                 <Text style={styles.settingLabel}>Language</Text>
-                <Text style={styles.settingValue}>{getLanguageName(selectedLanguage)}</Text>
+                <Text style={styles.settingValue}>{getLanguageName(language)}</Text>
               </View>
             </View>
             <ChevronRight size={20} color={colors.textLight} />
@@ -383,17 +383,17 @@ export default function StudentProfile() {
                 key={lang.code}
                 style={[
                   styles.pickerOption,
-                  selectedLanguage === lang.code && styles.pickerOptionSelected,
+                  language === lang.code && styles.pickerOptionSelected,
                 ]}
                 onPress={() => {
-                  setSelectedLanguage(lang.code);
+                  setLanguage(lang.code as 'en' | 'fil');
                   setShowLanguageModal(false);
                 }}
               >
                 <Text
                   style={[
                     styles.pickerOptionText,
-                    selectedLanguage === lang.code && styles.pickerOptionTextSelected,
+                    language === lang.code && styles.pickerOptionTextSelected,
                   ]}
                 >
                   {lang.name}
@@ -407,7 +407,7 @@ export default function StudentProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -138,12 +138,12 @@ export default function StudentDashboard() {
                 <View style={styles.reportCardHeader}>
                   <View style={[styles.typeBadge, { backgroundColor: getTypeColor(report.incidentType) + '20' }]}>
                     <Text style={[styles.typeBadgeText, { color: getTypeColor(report.incidentType) }]}>
-                      {(report.incidentType || 'unknown').replace(/_/g, ' ')}
+                      {getIncidentTypeLabel(report.incidentType)}
                     </Text>
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: getStatusColor(report.status) + '20' }]}>
                     <Text style={[styles.statusBadgeText, { color: getStatusColor(report.status) }]}>
-                      {(report.status || 'unknown').replace(/_/g, ' ')}
+                      {getStatusLabel(report.status)}
                     </Text>
                   </View>
                 </View>
@@ -202,6 +202,8 @@ function getStatusColor(status: string): string {
 
 function getTypeColor(type: string): string {
   switch (type) {
+    case 'other':
+      return '#EF4444';
     case 'bullying':
     case 'physical_assault':
     case 'fighting':
@@ -214,6 +216,20 @@ function getTypeColor(type: string): string {
     default:
       return '#64748B';
   }
+}
+
+function getIncidentTypeLabel(type?: string): string {
+  if (!type || type === 'unknown' || type === 'other') {
+    return 'Bullying Incident';
+  }
+  return type.replace(/_/g, ' ');
+}
+
+function getStatusLabel(status?: string): string {
+  if (!status || status === 'unknown') {
+    return 'under review';
+  }
+  return status.replace(/_/g, ' ');
 }
 
 const styles = StyleSheet.create({

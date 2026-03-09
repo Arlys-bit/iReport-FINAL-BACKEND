@@ -92,13 +92,15 @@ export default function StudentReportDetail() {
           icon: Clock, 
           color: '#64748B', 
           bgColor: '#F1F5F9',
-          label: 'Unknown' 
+          label: 'Under Review' 
         };
     }
   };
 
   const getTypeColor = (type: string): string => {
     switch (type) {
+      case 'other':
+        return '#EF4444';
       case 'bullying':
       case 'physical_assault':
       case 'fighting':
@@ -111,6 +113,13 @@ export default function StudentReportDetail() {
       default:
         return '#64748B';
     }
+  };
+
+  const getIncidentTypeLabel = (type: string): string => {
+    if (!type || type === 'unknown' || type === 'other') {
+      return 'Bullying Incident';
+    }
+    return type.replace(/_/g, ' ');
   };
 
   const getPriorityConfig = (priority: string) => {
@@ -167,7 +176,7 @@ export default function StudentReportDetail() {
             </View>
             <View style={[styles.typeBadge, { backgroundColor: getTypeColor(incidentType) + '20' }]}>
               <Text style={[styles.typeBadgeText, { color: getTypeColor(incidentType) }]}>
-                {incidentType.replace(/_/g, ' ')}
+                {getIncidentTypeLabel(incidentType)}
               </Text>
             </View>
           </View>

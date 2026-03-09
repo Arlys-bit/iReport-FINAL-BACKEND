@@ -3,14 +3,14 @@ import React from 'react';
 
 export default function StudentReportsLayout() {
   return (
-    <Stack screenOptions={{ headerBackTitle: 'Back' }}>
+    <Stack screenOptions={{ headerBackTitle: 'Back', headerShown: false }}>
       <Stack.Screen
         name="index"
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: 'Report Details' }}
+        options={{ headerShown: false }}
       />
     </Stack>
   );

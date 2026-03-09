@@ -154,39 +154,8 @@ export const [ReportsProvider, useReports] = createContextHook(() => {
         queryClient.invalidateQueries({ queryKey: ['reports'] });
         return normalizeReport(result);
       } catch (apiError) {
-        logger.warn('API create report failed, using local storage:', apiError);
-        
-        // Fallback to local storage
-        const reports: IncidentReport[] = reportsQuery.data || [];
-        
-        const priority = report.incidentType === 'Physical Bullying' || report.incidentType === 'fighting' 
-          ? 'urgent' 
-          : report.incidentType === 'Verbal Threats' || report.incidentType === 'Group Bullying'
-          ? 'high'
-          : 'medium';
-
-        const reviewHistory: ReportReviewHistory[] = [{
-          id: `review_${Date.now()}`,
-          reviewerId: report.reporterId,
-          reviewerName: report.reporterName,
-          action: 'submitted',
-          timestamp: new Date().toISOString(),
-        }];
-
-        const newReport: IncidentReport = {
-          ...report,
-          id: `report_${Date.now()}`,
-          status: 'under_review',
-          priority,
-          reviewHistory,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        const updatedReports = [...reports, newReport];
-        await saveReportsMutation.mutateAsync(updatedReports);
-
-        return newReport;
+        logger.error('API create report failed:', apiError);
+        throw new Error('Failed to submit report to server. Please check internet and try again.');
       }
     },
   });

@@ -36,7 +36,6 @@ import { STAFF_POSITIONS } from '@/constants/staff';
 const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'fil', name: 'Filipino' },
-  { code: 'ceb', name: 'Cebuano' },
 ] as const;
 
 export default function AdminProfile() {
@@ -610,7 +609,7 @@ export default function AdminProfile() {
                   language === lang.code && dynamicStyles.pickerOptionSelected,
                 ]}
                 onPress={() => {
-                  setLanguage(lang.code as 'en' | 'fil' | 'ceb');
+                  setLanguage(lang.code as 'en' | 'fil');
                   setShowLanguageModal(false);
                 }}
               >

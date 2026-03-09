@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollVi
 import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import { Moon, Sun } from 'lucide-react-native';
+import { Moon, Sun, Globe } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { logout } = useAuth();
-  const { isDark, colors, theme, setTheme, t } = useSettings();
+  const { isDark, colors, theme, setTheme, language, setLanguage, t } = useSettings();
   const systemColorScheme = useColorScheme();
 
   const handleLogout = () => {
@@ -42,12 +42,12 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ 
-        title: 'Settings',
+        title: t('settings'),
         headerBackTitle: 'Back'
       }} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings')}</Text>
           
           <View style={[styles.settingItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.settingLeft}>
@@ -59,7 +59,7 @@ export default function SettingsScreen() {
                 )}
               </View>
               <View>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>Dark Mode</Text>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('darkMode')}</Text>
                 <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
                   {theme === 'system' ? 'System' : (isDark ? 'Enabled' : 'Disabled')}
                 </Text>
@@ -86,10 +86,38 @@ export default function SettingsScreen() {
               />
             </TouchableOpacity>
           </View>
+
+          <View style={[styles.settingItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
+                <Globe size={20} color={colors.surface} />
+              </View>
+              <View>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('language')}</Text>
+                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                  {language === 'fil' ? t('filipino') : t('english')}
+                </Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={[styles.langButton, { borderColor: colors.border, backgroundColor: language === 'en' ? colors.primary : colors.surface }]}
+                onPress={() => setLanguage('en')}
+              >
+                <Text style={{ color: language === 'en' ? colors.surface : colors.text }}>EN</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.langButton, { borderColor: colors.border, backgroundColor: language === 'fil' ? colors.primary : colors.surface }]}
+                onPress={() => setLanguage('fil')}
+              >
+                <Text style={{ color: language === 'fil' ? colors.surface : colors.text }}>FIL</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile')}</Text>
           
           <View style={[styles.settingItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.settingLeft}>
@@ -100,7 +128,7 @@ export default function SettingsScreen() {
                 <Text style={{ fontSize: 18 }}>🚪</Text>
               </TouchableOpacity>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>Logout</Text>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('logout')}</Text>
                 <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
                   Sign out from your account
                 </Text>
@@ -186,5 +214,11 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  langButton: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
 });
