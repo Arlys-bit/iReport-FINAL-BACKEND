@@ -2,7 +2,7 @@ import createContextHook from '@/utils/createContextHook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Student, GradeLevel, Section, ViolationRecord } from '@/types';
-import { studentsApi } from '@/utils/api';
+import { authApi, studentsApi } from '@/utils/api';
 import logger from '@/utils/logger';
 
 const STORAGE_KEYS = {
@@ -207,6 +207,21 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
         violationHistory: [],
         createdAt: new Date().toISOString(),
       };
+
+      // Best-effort backend registration so Render logs show student creation.
+      // Keep local flow for existing app behavior and extra app-only fields.
+      try {
+        await authApi.register({
+          fullName: newStudent.fullName,
+          email: newStudent.schoolEmail || newStudent.email,
+          password: newStudent.password,
+          role: 'student',
+          gradeLevel: String((newStudent as any).gradeLevelId || ''),
+          section: String((newStudent as any).sectionId || ''),
+        });
+      } catch (apiError) {
+        logger.warn('API register student failed, continuing with local save:', apiError);
+      }
       
       const updated = [...students, newStudent];
       await saveStudentsMutation.mutateAsync(updated);

@@ -2,6 +2,8 @@ import createContextHook from '@/utils/createContextHook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StaffMember, ActivityLog, StaffPermission, StaffPosition } from '@/types';
+import { authApi } from '@/utils/api';
+import logger from '@/utils/logger';
 
 const STORAGE_KEYS = {
   STAFF: 'school_staff_members',
@@ -83,6 +85,21 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
         isActive: true,
         createdAt: new Date().toISOString(),
       };
+
+      // Best-effort backend registration so Render logs show account creation.
+      // Keep local flow for existing app behavior.
+      try {
+        const backendRole =
+          newStaff.role === 'teacher' ? 'teacher' : 'admin';
+        await authApi.register({
+          fullName: newStaff.fullName,
+          email: newStaff.schoolEmail,
+          password: newStaff.password,
+          role: backendRole,
+        });
+      } catch (apiError) {
+        logger.warn('API register staff failed, continuing with local save:', apiError);
+      }
 
       const updatedStaff = [...staff, newStaff];
       await saveStaffMutation.mutateAsync(updatedStaff);
