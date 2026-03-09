@@ -14,7 +14,6 @@ import { Send } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import colors from '@/constants/colors';
-import Groq from 'groq-sdk';
 
 interface Message {
   id: string;
@@ -22,12 +21,6 @@ interface Message {
   sender: 'user' | 'bot';
   timestamp: Date;
 }
-
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.EXPO_PUBLIC_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
 
 const SYSTEM_PROMPT = `You are a helpful and supportive bot for the iReport app, which helps students report bullying incidents safely and anonymously.
 
@@ -41,13 +34,6 @@ You ONLY answer questions related to:
 
 If someone asks about topics unrelated to bullying or the iReport app, politely redirect them back to bullying-related topics.
 Always be empathetic, supportive, and helpful. Keep responses concise and clear.`;
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-}
 
 export default function BotScreen() {
   const router = useRouter();
@@ -73,23 +59,36 @@ export default function BotScreen() {
         return 'API key not configured. Please check your environment variables.';
       }
 
-      const message = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: 'user',
-            content: userMessage,
-          },
-        ],
-        model: 'llama-3.1-8b-instant',
-        max_tokens: 200,
-        temperature: 0.7,
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: SYSTEM_PROMPT,
+            },
+            {
+              role: 'user',
+              content: userMessage,
+            },
+          ],
+          max_tokens: 200,
+          temperature: 0.7,
+        }),
       });
 
-      return message.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data?.choices?.[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
     } catch (error: any) {
       console.error('Error calling Groq API:', error);
       const errorMessage = error?.message || error?.error?.message || 'Unknown error';
