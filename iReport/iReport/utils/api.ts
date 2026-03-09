@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import logger from '@/utils/logger';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const DEFAULT_PROD_API_URL = 'https://ireport-final-backend-production.up.railway.app/api';
+const API_URL = (process.env.EXPO_PUBLIC_API_URL || DEFAULT_PROD_API_URL).replace(/\/$/, '');
 
 export interface ApiResponse<T> {
   data?: T;
