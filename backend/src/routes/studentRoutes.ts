@@ -10,6 +10,8 @@ router.put('/:id', authMiddleware, studentController.updateStudent);
 router.delete('/:id', authMiddleware, studentController.deleteStudent);
 
 router.get('/grade-levels', authMiddleware, studentController.getGradeLevels);
+router.post('/grade-levels', authMiddleware, studentController.createGradeLevel);
 router.get('/sections', authMiddleware, studentController.getSections);
+router.post('/sections', authMiddleware, studentController.createSection);
 
 export default router;

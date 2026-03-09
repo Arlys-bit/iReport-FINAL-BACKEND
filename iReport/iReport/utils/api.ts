@@ -125,10 +125,14 @@ export const studentsApi = {
   updateStudent: (id: string, data: any) => apiClient.put(`/students/${id}`, data),
   deleteStudent: (id: string) => apiClient.delete(`/students/${id}`),
   getGradeLevels: () => apiClient.get('/students/grade-levels'),
+  createGradeLevel: (data: { name: string; code?: string }) =>
+    apiClient.post('/students/grade-levels', data),
   getSections: (params?: any) => {
     const query = new URLSearchParams(params).toString();
     return apiClient.get(`/students/sections${query ? `?${query}` : ''}`);
   },
+  createSection: (data: { name: string; gradeLevelId: string; advisorId?: string }) =>
+    apiClient.post('/students/sections', data),
 };
 
 // Buildings API

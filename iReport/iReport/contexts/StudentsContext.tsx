@@ -22,6 +22,24 @@ const DEFAULT_GRADE_LEVELS: GradeLevel[] = [
 
 export const [StudentsProvider, useStudents] = createContextHook(() => {
   const queryClient = useQueryClient();
+  const normalizeGradeLevel = (level: any, index = 0): GradeLevel => ({
+    id: String(level?.id || level?._id || `grade_${index}`),
+    name: String(level?.name || `Grade ${index + 1}`),
+    order: typeof level?.order === 'number' ? level.order : index + 1,
+    isActive: level?.isActive !== false,
+  });
+  const normalizeSection = (section: any, index = 0): Section => ({
+    id: String(section?.id || section?._id || `section_${index}`),
+    name: String(section?.name || `Section ${index + 1}`),
+    gradeLevelId: String(
+      section?.gradeLevelId?._id ||
+        section?.gradeLevelId ||
+        section?.gradeLevel ||
+        ''
+    ),
+    advisorId: section?.adviser?._id || section?.advisorId || section?.adviser,
+    isActive: section?.isActive !== false,
+  });
 
   const studentsQuery = useQuery({
     queryKey: ['students'],
@@ -46,7 +64,8 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
       try {
         // Try API first
         const result: any = await studentsApi.getGradeLevels();
-        return result;
+        const levels = Array.isArray(result) ? result : result?.data || [];
+        return levels.map((level: any, index: number) => normalizeGradeLevel(level, index));
       } catch (apiError) {
         logger.warn('API fetch grade levels failed, using defaults:', apiError);
         
@@ -67,7 +86,8 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
       try {
         // Try API first
         const result: any = await studentsApi.getSections();
-        return result;
+        const sections = Array.isArray(result) ? result : result?.data || [];
+        return sections.map((section: any, index: number) => normalizeSection(section, index));
       } catch (apiError) {
         logger.warn('API fetch sections failed, using local storage:', apiError);
         
@@ -110,44 +130,58 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
 
   const createGradeLevelMutation = useMutation({
     mutationFn: async (data: { name: string }) => {
-      const levels: GradeLevel[] = gradeLevelsQuery.data || [];
-      const maxOrder = levels.reduce((max, l) => Math.max(max, l.order), 0);
-      
-      const newLevel: GradeLevel = {
-        id: `grade_${Date.now()}`,
-        name: data.name,
-        order: maxOrder + 1,
-        isActive: true,
-      };
-      
-      const updated = [...levels, newLevel];
-      await saveGradeLevelsMutation.mutateAsync(updated);
-      return newLevel;
+      try {
+        const created: any = await studentsApi.createGradeLevel({ name: data.name });
+        queryClient.invalidateQueries({ queryKey: ['gradeLevels'] });
+        return normalizeGradeLevel(created);
+      } catch (apiError) {
+        logger.warn('API create grade level failed, using local storage:', apiError);
+        const levels: GradeLevel[] = gradeLevelsQuery.data || [];
+        const maxOrder = levels.reduce((max, l) => Math.max(max, l.order), 0);
+
+        const newLevel: GradeLevel = {
+          id: `grade_${Date.now()}`,
+          name: data.name,
+          order: maxOrder + 1,
+          isActive: true,
+        };
+
+        const updated = [...levels, newLevel];
+        await saveGradeLevelsMutation.mutateAsync(updated);
+        return newLevel;
+      }
     },
   });
 
   const createSectionMutation = useMutation({
     mutationFn: async (data: { name: string; gradeLevelId: string; advisorId?: string }) => {
-      const sections: Section[] = sectionsQuery.data || [];
-      
-      const exists = sections.some(
-        s => s.name.toLowerCase() === data.name.toLowerCase() && s.gradeLevelId === data.gradeLevelId
-      );
-      if (exists) {
-        throw new Error('Section already exists in this grade level');
+      try {
+        const created: any = await studentsApi.createSection(data);
+        queryClient.invalidateQueries({ queryKey: ['sections'] });
+        return normalizeSection(created);
+      } catch (apiError) {
+        logger.warn('API create section failed, using local storage:', apiError);
+        const sections: Section[] = sectionsQuery.data || [];
+
+        const exists = sections.some(
+          s => s.name.toLowerCase() === data.name.toLowerCase() && s.gradeLevelId === data.gradeLevelId
+        );
+        if (exists) {
+          throw new Error('Section already exists in this grade level');
+        }
+
+        const newSection: Section = {
+          id: `section_${Date.now()}`,
+          name: data.name,
+          gradeLevelId: data.gradeLevelId,
+          advisorId: data.advisorId,
+          isActive: true,
+        };
+
+        const updated = [...sections, newSection];
+        await saveSectionsMutation.mutateAsync(updated);
+        return newSection;
       }
-      
-      const newSection: Section = {
-        id: `section_${Date.now()}`,
-        name: data.name,
-        gradeLevelId: data.gradeLevelId,
-        advisorId: data.advisorId,
-        isActive: true,
-      };
-      
-      const updated = [...sections, newSection];
-      await saveSectionsMutation.mutateAsync(updated);
-      return newSection;
     },
   });
 
