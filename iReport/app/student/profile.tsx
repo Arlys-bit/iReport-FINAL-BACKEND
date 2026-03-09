@@ -51,8 +51,29 @@ export default function StudentProfile() {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   const student = currentUser as Student;
-  const currentGrade = gradeLevels.find(g => g.id === student?.gradeLevelId);
-  const currentSection = sections.find(s => s.id === student?.sectionId);
+  const studentAny = student as any;
+  const currentGrade = gradeLevels.find(
+    g =>
+      g.id === studentAny?.gradeLevelId ||
+      g.id === studentAny?.gradeLevel ||
+      g.name === studentAny?.gradeLevel
+  );
+  const currentSection = sections.find(
+    s =>
+      s.id === studentAny?.sectionId ||
+      s.id === studentAny?.section ||
+      s.name === studentAny?.section
+  );
+  const displayLRN = studentAny?.lrn || studentAny?.studentId || studentAny?.id || 'N/A';
+  const displaySchoolEmail = studentAny?.schoolEmail || studentAny?.email || 'N/A';
+  const displayGradeSection =
+    currentGrade && currentSection
+      ? `${currentGrade.name} - Section ${currentSection.name}`
+      : studentAny?.gradeLevel && studentAny?.section
+      ? `${studentAny.gradeLevel} - Section ${studentAny.section}`
+      : currentGrade
+      ? `${currentGrade.name}`
+      : 'Not assigned';
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -192,7 +213,7 @@ export default function StudentProfile() {
             )}
           </View>
           <Text style={styles.name}>{student.fullName}</Text>
-          <Text style={styles.subtitle}>{currentGrade?.name} - Section {currentSection?.name}</Text>
+          <Text style={styles.subtitle}>{displayGradeSection}</Text>
         </View>
 
         <View style={styles.section}>
@@ -204,7 +225,7 @@ export default function StudentProfile() {
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>LRN</Text>
-              <Text style={styles.infoValue}>{student.lrn}</Text>
+              <Text style={styles.infoValue}>{displayLRN}</Text>
             </View>
           </View>
 
@@ -214,7 +235,7 @@ export default function StudentProfile() {
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>School Email</Text>
-              <Text style={styles.infoValue}>{student.schoolEmail || student.email}</Text>
+              <Text style={styles.infoValue}>{displaySchoolEmail}</Text>
             </View>
           </View>
 
@@ -224,7 +245,7 @@ export default function StudentProfile() {
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Grade & Section</Text>
-              <Text style={styles.infoValue}>{currentGrade?.name} - Section {currentSection?.name}</Text>
+              <Text style={styles.infoValue}>{displayGradeSection}</Text>
             </View>
           </View>
         </View>
