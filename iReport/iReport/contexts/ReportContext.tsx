@@ -12,12 +12,83 @@ const STORAGE_KEYS = {
 
 export const [ReportsProvider, useReports] = createContextHook(() => {
   const queryClient = useQueryClient();
+  const normalizeReport = (report: any): IncidentReport => ({
+    id: String(report?.id || report?._id || `report_${Date.now()}`),
+    reporterId: String(
+      report?.reporterId?._id ||
+        report?.reporterId?.id ||
+        report?.reporterId ||
+        ''
+    ),
+    reporterName:
+      report?.reporterName ||
+      report?.reporterId?.fullName ||
+      'Unknown Reporter',
+    reporterLRN: String(report?.reporterLRN || report?.reporterId?.studentId || ''),
+    reporterGradeLevelId: String(report?.reporterGradeLevelId || report?.reporterGradeLevel || ''),
+    reporterSectionId: String(report?.reporterSectionId || report?.reporterSection || ''),
+    reporterPhoto: report?.reporterPhoto,
+    isAnonymous: !!report?.isAnonymous,
+    victimName: String(report?.victimName || ''),
+    location:
+      typeof report?.location === 'object' && report?.location
+        ? report.location
+        : {
+            building: String(report?.buildingName || 'N/A'),
+            floor: String(report?.floor || 'N/A'),
+            room: typeof report?.location === 'string' ? report.location : String(report?.room || 'N/A'),
+          },
+    incidentType: report?.incidentType || 'other',
+    description: report?.description,
+    dateTime:
+      report?.dateTime ||
+      (report?.incidentDate
+        ? new Date(report.incidentDate).toISOString()
+        : undefined),
+    cantRememberDateTime: !!report?.cantRememberDateTime,
+    photoEvidence: report?.photoEvidence,
+    reportingForSelf: report?.reportingForSelf !== false,
+    status: report?.status || 'under_review',
+    priority: report?.priority || 'medium',
+    assignedTeacherId: report?.assignedTeacherId,
+    reviewHistory: Array.isArray(report?.reviewHistory)
+      ? report.reviewHistory.map((entry: any, index: number) => ({
+          id: String(entry?.id || entry?._id || `review_${index}`),
+          reviewerId: String(entry?.reviewerId || entry?.reviewedBy || ''),
+          reviewerName: String(entry?.reviewerName || entry?.reviewedByName || 'Staff'),
+          action:
+            entry?.action ||
+            (entry?.status === 'accepted'
+              ? 'accepted'
+              : entry?.status === 'declined'
+              ? 'declined'
+              : 'reviewed'),
+          notes: entry?.notes,
+          timestamp: String(
+            entry?.timestamp || entry?.createdAt || new Date().toISOString()
+          ),
+        }))
+      : [],
+    adminNotes: report?.adminNotes,
+    declineReason: report?.declineReason,
+    createdAt: String(report?.createdAt || new Date().toISOString()),
+    updatedAt: String(report?.updatedAt || report?.createdAt || new Date().toISOString()),
+    reviewedAt: report?.reviewedAt,
+    reviewedBy: report?.reviewedBy,
+  });
 
   const reportsQuery = useQuery({
     queryKey: ['reports'],
     queryFn: async () => {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.REPORTS);
-      return stored ? JSON.parse(stored) : [];
+      try {
+        const result: any = await reportsApi.getReports({ limit: 200 });
+        const reports = Array.isArray(result) ? result : result?.data || [];
+        return reports.map((report: any) => normalizeReport(report));
+      } catch (apiError) {
+        logger.warn('API fetch reports failed, using local storage:', apiError);
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.REPORTS);
+        return stored ? JSON.parse(stored) : [];
+      }
     },
   });
 
@@ -55,22 +126,33 @@ export const [ReportsProvider, useReports] = createContextHook(() => {
         // Try API first
         const result: any = await reportsApi.createReport({
           reporterId: report.reporterId,
-          reporterRole: report.reporterRole,
+          reporterRole: 'student',
           reporterName: report.reporterName,
-          reporterGradeLevel: report.reporterGradeLevel,
-          reporterSection: report.reporterSection,
+          reporterGradeLevel: report.reporterGradeLevelId,
+          reporterSection: report.reporterSectionId,
           isAnonymous: report.isAnonymous,
           victimName: report.victimName,
-          location: report.location,
-          buildingName: report.buildingName,
+          location:
+            typeof report.location === 'object'
+              ? `${report.location.building} ${report.location.floor} ${report.location.room}`.trim()
+              : report.location,
+          buildingName:
+            typeof report.location === 'object' ? report.location.building : undefined,
+          floor:
+            typeof report.location === 'object' ? report.location.floor : undefined,
+          room:
+            typeof report.location === 'object' ? report.location.room : undefined,
           incidentType: report.incidentType,
-          incidentDate: report.incidentDate,
-          incidentTime: report.incidentTime,
+          incidentDate: report.dateTime ? new Date(report.dateTime) : new Date(),
+          incidentTime: report.dateTime
+            ? new Date(report.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : undefined,
           description: report.description,
           photoEvidence: report.photoEvidence,
         });
-        
-        return result;
+
+        queryClient.invalidateQueries({ queryKey: ['reports'] });
+        return normalizeReport(result);
       } catch (apiError) {
         logger.warn('API create report failed, using local storage:', apiError);
         
@@ -125,6 +207,19 @@ export const [ReportsProvider, useReports] = createContextHook(() => {
       notes?: string;
       declineReason?: string;
     }) => {
+      try {
+        const updated: any = await reportsApi.updateReportStatus(reportId, {
+          status,
+          notes,
+          reviewedByName: reviewerName,
+          declineReason,
+        });
+        queryClient.invalidateQueries({ queryKey: ['reports'] });
+        return normalizeReport(updated);
+      } catch (apiError) {
+        logger.warn('API update report status failed, using local storage:', apiError);
+      }
+
       const reports: IncidentReport[] = reportsQuery.data || [];
       const index = reports.findIndex(r => r.id === reportId);
       
@@ -183,6 +278,25 @@ export const [ReportsProvider, useReports] = createContextHook(() => {
       reviewerName: string;
       notes: string;
     }) => {
+      try {
+        const report = (reportsQuery.data || []).find((r: IncidentReport) => r.id === reportId);
+        if (!report) throw new Error('Report not found');
+
+        const mergedNotes = report.adminNotes
+          ? `${report.adminNotes}\n${notes}`
+          : notes;
+
+        const updated: any = await reportsApi.updateReportStatus(reportId, {
+          status: report.status,
+          notes: mergedNotes,
+          reviewedByName: reviewerName,
+        });
+        queryClient.invalidateQueries({ queryKey: ['reports'] });
+        return normalizeReport(updated);
+      } catch (apiError) {
+        logger.warn('API add review note failed, using local storage:', apiError);
+      }
+
       const reports: IncidentReport[] = reportsQuery.data || [];
       const index = reports.findIndex(r => r.id === reportId);
       
@@ -239,7 +353,7 @@ export const [ReportsProvider, useReports] = createContextHook(() => {
 
   const getReportsByTeacher = (teacherId: string) => {
     const reports: IncidentReport[] = reportsQuery.data || [];
-    return reports.filter(r => r.assignedTeacherId === teacherId);
+    return reports.filter(r => !r.assignedTeacherId || r.assignedTeacherId === teacherId);
   };
 
   const getReportsByStudent = (studentId: string) => {
