@@ -54,7 +54,7 @@ const hotlines: Hotline[] = [
 
 export default function EmergencyHotlines() {
   const { colors, isDark } = useSettings();
-  const handleCall = (hotline: Hotline) => {
+  const handleCall = async (hotline: Hotline) => {
     const phoneNumber = hotline.number.replace(/[^0-9+]/g, '');
     const url = `tel:${phoneNumber}`;
 
@@ -67,22 +67,16 @@ export default function EmergencyHotlines() {
       return;
     }
 
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert(
-            'Cannot Make Call',
-            `Please dial ${hotline.number} manually.`,
-            [{ text: 'OK' }]
-          );
-        }
-      })
-      .catch((err) => {
-        console.error('Error opening phone dialer:', err);
-        Alert.alert('Error', 'Unable to open phone dialer');
-      });
+    try {
+      await Linking.openURL(url);
+    } catch (err) {
+      console.error('Error opening phone dialer:', err);
+      Alert.alert(
+        'Cannot Make Call',
+        `Please dial ${hotline.number} manually.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const renderHotlineCard: (hotline: Hotline) => React.ReactNode = (hotline) => {
