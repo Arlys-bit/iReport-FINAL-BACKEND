@@ -14,9 +14,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { 
-  Mail, 
-  IdCard, 
+import {
+  Mail,
+  CreditCard,
   GraduationCap,
   Lock,
   Edit2,
@@ -308,7 +308,7 @@ export default function StudentProfile() {
 
           <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
-              <IdCard size={20} color={colors.primary} />
+              <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>LRN</Text>

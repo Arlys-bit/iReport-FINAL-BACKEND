@@ -14,10 +14,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { 
-  User, 
-  Mail, 
-  IdCard, 
+import {
+  User,
+  Mail,
+  CreditCard,
   Briefcase,
   Camera, 
   Lock, 
@@ -458,7 +458,7 @@ export default function AdminProfile() {
 
           <View style={dynamicStyles.infoRow}>
             <View style={dynamicStyles.infoIcon}>
-              <IdCard size={20} color={colors.primary} />
+              <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={dynamicStyles.infoContent}>
               <Text style={dynamicStyles.infoLabel}>Staff ID</Text>

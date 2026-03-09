@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { 
-  Mail, 
-  IdCard, 
+import {
+  Mail,
+  CreditCard,
   Award, 
   BookOpen, 
   Shield, 
@@ -308,7 +308,7 @@ export default function StaffProfile() {
           
           <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
-              <IdCard size={20} color={colors.primary} />
+              <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Staff ID</Text>

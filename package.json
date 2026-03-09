@@ -10,6 +10,7 @@
     "node": "18"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "mongodb": "^7.1.0"
   }
 }

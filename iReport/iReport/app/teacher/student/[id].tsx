@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Mail, IdCard, GraduationCap, User, AlertTriangle } from 'lucide-react-native';
+import { Mail, CreditCard, GraduationCap, User, AlertTriangle } from 'lucide-react-native';
 import { useStudents } from '@/contexts/StudentsContext';
 import { useReports } from '@/contexts/ReportContext';
 import { ViolationRecord } from '@/types';
@@ -62,7 +62,7 @@ export default function TeacherStudentProfile() {
 
           <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
-              <IdCard size={20} color={colors.primary} />
+              <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>LRN</Text>
