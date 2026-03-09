@@ -26,8 +26,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       user: {
         id: user._id,
         email: user.email,
+        schoolEmail: (user as any).schoolEmail || user.email,
         role: user.role,
         fullName: user.fullName,
+        staffId: (user as any).staffId,
+        position: (user as any).position,
       },
     });
   } catch (error) {
@@ -78,8 +81,11 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       user: {
         id: user._id,
         email: user.email,
+        schoolEmail: (user as any).schoolEmail || user.email,
         role: user.role,
         fullName: user.fullName,
+        staffId: (user as any).staffId,
+        position: (user as any).position,
       },
     });
   } catch (error) {

@@ -87,12 +87,37 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         // Try API first
         const response: any = await authApi.login(email, password);
         const token = response.token;
+        let user = response.user || {};
         
         // Save token to storage
         await AsyncStorage.setItem('auth_token', token);
-        await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(response.user));
-        
-        return response.user;
+
+        // Hydrate with full profile when available (schoolEmail, staffId, position, etc.)
+        try {
+          const profile: any = await authApi.getProfile();
+          if (profile) {
+            user = {
+              ...user,
+              ...profile,
+              id: String(profile.id || profile._id || user.id),
+            };
+          }
+        } catch (profileError) {
+          logger.warn('Profile fetch after login failed, using login payload only:', profileError);
+        }
+
+        user = {
+          ...user,
+          id: String(user.id || user._id || ''),
+          schoolEmail: user.schoolEmail || user.email,
+          staffId: user.staffId || String(user.id || user._id || ''),
+          position:
+            user.position ||
+            (user.role === 'admin' ? 'principal' : user.role),
+        };
+
+        await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+        return user;
       } catch (apiError) {
         logger.warn('API login failed, attempting local auth:', apiError);
         

@@ -175,6 +175,10 @@ export default function AdminProfile() {
     );
   }
 
+  const displayStaffId = staffMember.staffId || staffMember.id || 'N/A';
+  const displaySchoolEmail = staffMember.schoolEmail || staffMember.email || 'N/A';
+  const displayPosition = staffMember.position || (staffMember.role === 'admin' ? 'principal' : staffMember.role);
+
   const dynamicStyles = StyleSheet.create({
     container: {
       flex: 1,
@@ -450,7 +454,7 @@ export default function AdminProfile() {
             )}
           </View>
           <Text style={dynamicStyles.name}>{staffMember.fullName}</Text>
-          <Text style={dynamicStyles.subtitle}>{getPositionName(staffMember.position)}</Text>
+          <Text style={dynamicStyles.subtitle}>{getPositionName(displayPosition)}</Text>
         </View>
 
         <View style={dynamicStyles.section}>
@@ -462,7 +466,7 @@ export default function AdminProfile() {
             </View>
             <View style={dynamicStyles.infoContent}>
               <Text style={dynamicStyles.infoLabel}>Staff ID</Text>
-              <Text style={dynamicStyles.infoValue}>{staffMember.staffId}</Text>
+              <Text style={dynamicStyles.infoValue}>{displayStaffId}</Text>
             </View>
           </View>
 
@@ -472,7 +476,7 @@ export default function AdminProfile() {
             </View>
             <View style={dynamicStyles.infoContent}>
               <Text style={dynamicStyles.infoLabel}>School Email</Text>
-              <Text style={dynamicStyles.infoValue}>{staffMember.schoolEmail}</Text>
+              <Text style={dynamicStyles.infoValue}>{displaySchoolEmail}</Text>
             </View>
           </View>
 
@@ -482,7 +486,7 @@ export default function AdminProfile() {
             </View>
             <View style={dynamicStyles.infoContent}>
               <Text style={dynamicStyles.infoLabel}>Position</Text>
-              <Text style={dynamicStyles.infoValue}>{getPositionName(staffMember.position)}</Text>
+              <Text style={dynamicStyles.infoValue}>{getPositionName(displayPosition)}</Text>
             </View>
           </View>
         </View>
