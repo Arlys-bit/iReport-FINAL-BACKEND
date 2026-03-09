@@ -17,12 +17,6 @@ export default function StudentLayout() {
           presentation: 'modal',
         }} 
       />
-      <Stack.Screen 
-        name="reports" 
-        options={{ 
-          headerShown: false,
-        }} 
-      />
     </Stack>
   );
 }

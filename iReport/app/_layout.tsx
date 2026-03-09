@@ -11,7 +11,9 @@ import { BuildingsProvider } from "@/contexts/BuildingsContext";
 import { LiveReportsProvider } from "@/contexts/LiveReportsContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore splash timing errors during app bootstrap.
+});
 
 const queryClient = new QueryClient();
 
@@ -23,14 +25,15 @@ function RootLayoutNav() {
       <Stack.Screen name="admin" options={{ headerShown: false }} />
       <Stack.Screen name="teacher" options={{ headerShown: false }} />
       <Stack.Screen name="student" options={{ headerShown: false }} />
-      <Stack.Screen name="report" options={{ headerShown: false }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
   useEffect(() => {
-    SplashScreen.hideAsync();
+    void SplashScreen.hideAsync().catch(() => {
+      // Ignore when splash is already hidden.
+    });
   }, []);
 
   return (

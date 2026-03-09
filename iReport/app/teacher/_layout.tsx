@@ -11,7 +11,7 @@ export default function TeacherLayout() {
         }} 
       />
       <Stack.Screen 
-        name="students/[id]" 
+        name="student/[id]" 
         options={{ 
           title: 'Student Profile',
         }} 
