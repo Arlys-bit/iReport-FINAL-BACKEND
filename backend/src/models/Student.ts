@@ -1,5 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IUser } from './User';
+import mongoose, { Schema } from 'mongoose';
+import { User, IUser } from './User';
 
 export interface IStudent extends IUser {
   gradeLevel: string;
@@ -42,7 +42,7 @@ const StudentSchema: Schema = new Schema(
       },
     ],
   },
-  { timestamps: true }
+  { _id: false }
 );
 
-export const Student = mongoose.model<IStudent>('Student', StudentSchema);
+export const Student = User.discriminator<IStudent>('Student', StudentSchema, 'student');

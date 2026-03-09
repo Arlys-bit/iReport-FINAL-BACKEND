@@ -138,25 +138,9 @@ export const [StaffProvider, useStaff] = createContextHook(() => {
         queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
         return normalizeStaff(created?.user || newStaff);
       } catch (apiError) {
-        logger.warn('API register staff failed, falling back to local save:', apiError);
+        logger.error('API register staff failed:', apiError);
+        throw new Error('Failed to create staff on server. Check backend/API URL and try again.');
       }
-
-      const updatedStaff = [...staff, newStaff];
-      await saveStaffMutation.mutateAsync(updatedStaff);
-      
-      await saveActivityLogMutation.mutateAsync({
-        id: `log_${Date.now()}`,
-        staffId: 'system',
-        staffName: 'System',
-        action: 'created_staff',
-        targetType: 'staff',
-        targetId: newStaff.id,
-        targetName: newStaff.fullName,
-        details: `Created ${staffData.position} account`,
-        timestamp: new Date().toISOString(),
-      });
-
-      return newStaff;
     },
   });
 

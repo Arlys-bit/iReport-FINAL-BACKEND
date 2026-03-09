@@ -70,6 +70,11 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
     let user;
     if (role === 'student') {
+      const studentId = req.body.studentId || req.body.lrn;
+      if (!gradeLevel || !section || !studentId) {
+        return res.status(400).json({ error: 'gradeLevel, section, and studentId are required for student' });
+      }
+
       user = new Student({
         email,
         password: hashedPassword,
@@ -77,8 +82,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         role: 'student',
         gradeLevel,
         section,
-        schoolEmail: email,
-        studentId: req.body.studentId || req.body.lrn,
+        schoolEmail: schoolEmail || email,
+        studentId,
       });
     } else {
       user = new User({
@@ -111,6 +116,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         schoolEmail: (user as any).schoolEmail || user.email,
         role: user.role,
         fullName: user.fullName,
+        studentId: (user as any).studentId,
         staffId: (user as any).staffId,
         position: (user as any).position,
       },

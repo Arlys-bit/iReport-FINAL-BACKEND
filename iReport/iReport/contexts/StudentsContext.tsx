@@ -225,41 +225,34 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
         createdAt: new Date().toISOString(),
       };
 
-      // Best-effort backend registration so Render logs show student creation.
-      // Keep local flow for existing app behavior and extra app-only fields.
-      try {
-        await authApi.register({
-          fullName: newStudent.fullName,
-          email: newStudent.schoolEmail || newStudent.email,
-          password: newStudent.password,
-          role: 'student',
-          gradeLevel: String((newStudent as any).gradeLevelId || ''),
-          section: String((newStudent as any).sectionId || ''),
-        });
-      } catch (apiError) {
-        logger.warn('API register student failed, continuing with local save:', apiError);
-      }
+      // Backend-first creation for reliable cross-device sync.
+      await authApi.register({
+        fullName: newStudent.fullName,
+        email: newStudent.schoolEmail || newStudent.email,
+        schoolEmail: newStudent.schoolEmail || newStudent.email,
+        password: newStudent.password,
+        role: 'student',
+        studentId: newStudent.lrn,
+        lrn: newStudent.lrn,
+        gradeLevel: String((newStudent as any).gradeLevelId || ''),
+        section: String((newStudent as any).sectionId || ''),
+        profilePhoto: newStudent.profilePhoto,
+      });
 
-      // Persist student profile fields to backend students collection as well.
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+
       try {
-        await studentsApi.createStudent({
-          fullName: newStudent.fullName,
-          email: newStudent.email,
-          schoolEmail: newStudent.schoolEmail,
-          password: newStudent.password,
-          studentId: newStudent.lrn,
-          gradeLevel: newStudent.gradeLevelId,
-          section: newStudent.sectionId,
-          profilePhoto: newStudent.profilePhoto,
-          isActive: true,
-        });
-      } catch (apiError) {
-        logger.warn('API create student failed, continuing with local save:', apiError);
+        const result: any = await studentsApi.getStudents();
+        const latest = (Array.isArray(result) ? result : result?.data || []).map((student: any, index: number) =>
+          normalizeStudent(student, index)
+        );
+        const match =
+          latest.find((s: Student) => s.email.toLowerCase() === (newStudent.email || '').toLowerCase()) ||
+          latest.find((s: Student) => s.lrn === newStudent.lrn);
+        return match || newStudent;
+      } catch {
+        return newStudent;
       }
-      
-      const updated = [...students, newStudent];
-      await saveStudentsMutation.mutateAsync(updated);
-      return newStudent;
     },
   });
 

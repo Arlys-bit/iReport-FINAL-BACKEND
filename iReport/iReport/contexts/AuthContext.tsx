@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'school_current_user',
   STAFF: 'school_staff_members',
 };
+const ALLOW_LOCAL_AUTH_FALLBACK = process.env.EXPO_PUBLIC_ALLOW_LOCAL_AUTH_FALLBACK === 'true';
 
 const DEFAULT_ADMIN: StaffMember = {
   id: 'admin_default',
@@ -123,7 +124,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
         return user;
       } catch (apiError) {
-        logger.warn('API login failed, attempting local auth:', apiError);
+        logger.warn('API login failed:', apiError);
+        if (!ALLOW_LOCAL_AUTH_FALLBACK) {
+          throw new Error('Cannot reach server. Please check internet/API URL and try again.');
+        }
+        logger.warn('Falling back to local auth because EXPO_PUBLIC_ALLOW_LOCAL_AUTH_FALLBACK=true');
         
         // Fallback to local auth if API is unavailable
         let staffMembers: StaffMember[] = staffQuery.data || [];
