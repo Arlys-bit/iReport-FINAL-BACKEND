@@ -123,11 +123,16 @@ export default function StudentDashboard() {
               </Text>
             </View>
           ) : (
-            myReports.map((report: IncidentReport) => (
+            myReports.map((report: IncidentReport) => {
+              const reportId = String((report as any).id || (report as any)._id || '');
+              return (
               <TouchableOpacity 
-                key={report.id} 
+                key={reportId || `${report.createdAt}-${report.reporterId}`} 
                 style={[styles.reportCard, { backgroundColor: colors.surface }]}
-                onPress={() => router.push(`/student/report/${report.id}` as any)}
+                onPress={() => {
+                  if (!reportId) return;
+                  router.push(`/student/report/${reportId}` as any);
+                }}
                 activeOpacity={0.7}
               >
                 <View style={styles.reportCardHeader}>
@@ -162,7 +167,8 @@ export default function StudentDashboard() {
                   </View>
                 )}
               </TouchableOpacity>
-            ))
+              );
+            })
           )}
         </View>
 

@@ -28,7 +28,10 @@ export default function StudentReportDetail() {
   const { gradeLevels, sections } = useStudents();
 
   const report = useMemo(() => {
-    return reports.find(r => r.id === id);
+    return reports.find(r => {
+      const reportId = String((r as any).id || (r as any)._id || '');
+      return reportId === id;
+    });
   }, [reports, id]);
 
   if (!report) {
@@ -47,6 +50,19 @@ export default function StudentReportDetail() {
 
   const gradeLevel = gradeLevels.find(g => g.id === report.reporterGradeLevelId);
   const section = sections.find(s => s.id === report.reporterSectionId);
+  const reportAny = report as any;
+  const incidentType = String(reportAny.incidentType || 'other');
+  const reportLocation =
+    typeof reportAny.location === 'object' && reportAny.location
+      ? reportAny.location
+      : {
+          building: String(reportAny.buildingName || 'N/A'),
+          floor: 'N/A',
+          room:
+            typeof reportAny.location === 'string'
+              ? reportAny.location
+              : 'N/A',
+        };
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -149,9 +165,9 @@ export default function StudentReportDetail() {
               <AlertTriangle size={16} color={colors.textSecondary} />
               <Text style={styles.infoLabelText}>Type</Text>
             </View>
-            <View style={[styles.typeBadge, { backgroundColor: getTypeColor(report.incidentType) + '20' }]}>
-              <Text style={[styles.typeBadgeText, { color: getTypeColor(report.incidentType) }]}>
-                {report.incidentType.replace(/_/g, ' ')}
+            <View style={[styles.typeBadge, { backgroundColor: getTypeColor(incidentType) + '20' }]}>
+              <Text style={[styles.typeBadgeText, { color: getTypeColor(incidentType) }]}>
+                {incidentType.replace(/_/g, ' ')}
               </Text>
             </View>
           </View>
@@ -192,17 +208,17 @@ export default function StudentReportDetail() {
             <View style={styles.locationItem}>
               <Building size={18} color={colors.primary} />
               <Text style={styles.locationLabel}>Building</Text>
-              <Text style={styles.locationValue}>{report.location.building}</Text>
+              <Text style={styles.locationValue}>{reportLocation.building}</Text>
             </View>
             <View style={styles.locationItem}>
               <MapPin size={18} color={colors.primary} />
               <Text style={styles.locationLabel}>Floor</Text>
-              <Text style={styles.locationValue}>{report.location.floor}</Text>
+              <Text style={styles.locationValue}>{reportLocation.floor}</Text>
             </View>
             <View style={styles.locationItem}>
               <FileText size={18} color={colors.primary} />
               <Text style={styles.locationLabel}>Room</Text>
-              <Text style={styles.locationValue}>{report.location.room}</Text>
+              <Text style={styles.locationValue}>{reportLocation.room}</Text>
             </View>
           </View>
         </View>

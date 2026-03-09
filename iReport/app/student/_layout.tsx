@@ -11,11 +11,16 @@ export default function StudentLayout() {
         }} 
       />
       <Stack.Screen 
-        name="report" 
+        name="report/index" 
         options={{ 
-          title: 'Submit Report',
-          presentation: 'modal',
+          headerShown: false,
         }} 
+      />
+      <Stack.Screen
+        name="report/[id]"
+        options={{
+          title: 'Report Details',
+        }}
       />
     </Stack>
   );
