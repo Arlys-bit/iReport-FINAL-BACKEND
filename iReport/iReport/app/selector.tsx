@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Shield, User, Users, BookOpen, MessageCircle, Settings, Book, HelpCircle, Lightbulb, Siren, PhoneCall as PhoneCallIcon } from 'lucide-react-native';
@@ -18,6 +19,7 @@ export default function SelectorScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const { colors } = useSettings();
+  const { width } = useWindowDimensions();
   useEffect(() => {
     // If no logged-in user, send to login — disallow guest dashboard
     if (!currentUser) {
@@ -151,6 +153,10 @@ export default function SelectorScreen() {
   };
 
   const gridItems = getGridItems();
+  const GRID_GAP = 12;
+  const GRID_PADDING = 32; // scroll horizontal padding (16 + 16)
+  const cardWidth = Math.max(150, Math.min(230, (width - GRID_PADDING - GRID_GAP) / 2));
+  const cardHeight = Math.max(150, Math.min(220, cardWidth * 0.95));
 
   return (
     <>
@@ -189,7 +195,15 @@ export default function SelectorScreen() {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={[styles.gridItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[
+                    styles.gridItem,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      width: cardWidth,
+                      height: cardHeight,
+                    },
+                  ]}
                   onPress={item.onPress}
                   activeOpacity={0.8}
                 >
@@ -245,16 +259,14 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   gridContainer: {
-    flex: 1,
-    display: 'flex',
+    width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
+    gap: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   gridItem: {
-    width: '48%',
-    aspectRatio: 1,
     borderRadius: 12,
     borderWidth: 2,
     padding: 12,

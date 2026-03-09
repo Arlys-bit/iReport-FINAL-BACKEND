@@ -111,6 +111,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           id: String(user.id || user._id || ''),
           schoolEmail: user.schoolEmail || user.email,
           staffId: user.staffId || String(user.id || user._id || ''),
+          lrn: user.lrn || user.studentId || '',
+          studentId: user.studentId || user.lrn || '',
+          gradeLevelId: user.gradeLevelId || user.gradeLevel || '',
+          sectionId: user.sectionId || user.section || '',
           position:
             user.position ||
             (user.role === 'admin' ? 'principal' : user.role),
