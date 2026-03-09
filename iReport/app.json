@@ -23,7 +23,10 @@
         "foregroundImage": "./iReport/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ireport.app"
+      "package": "com.ireport.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./iReport/assets/favicon.png"
@@ -36,6 +39,11 @@
           "cameraPermission": "The app accesses your camera to take photos for incident reports."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "14f845a0-05b6-48c9-a6a2-de1c2910b3d9"
+      }
+    }
   }
 }

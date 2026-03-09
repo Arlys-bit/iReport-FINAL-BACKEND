@@ -1,12 +1,41 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 
-export default function Page() {
+export default function Index() {
+  const router = useRouter();
+  const { currentUser, isLoading } = useAuth();
+  const { colors } = useSettings();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (currentUser) {
+        switch (currentUser.role) {
+          case 'admin':
+          case 'principal':
+          case 'guidance':
+            router.replace('/admin');
+            break;
+          case 'teacher':
+            router.replace('/teacher');
+            break;
+          case 'student':
+            router.replace('/student');
+            break;
+          default:
+            router.replace('/login');
+        }
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [currentUser, isLoading, router]);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.main}>
-        <Text style={styles.title}>Hello World</Text>
-        <Text style={styles.subtitle}>This is the first page of your app.</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );
 }
@@ -14,21 +43,7 @@ export default function Page() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    padding: 24,
-  },
-  main: {
-    flex: 1,
-    justifyContent: "center",
-    maxWidth: 960,
-    marginHorizontal: "auto",
-  },
-  title: {
-    fontSize: 64,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 36,
-    color: "#38434D",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
