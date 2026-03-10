@@ -33,3 +33,4 @@ Thumbs.db
 # Build artifacts
 build/
 .next/
+buildlog_*.txt
