@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -29,6 +31,7 @@ export default function TeacherReportDetails() {
   const { gradeLevels, sections } = useStudents();
 
   const report = useMemo(() => reports.find(r => r.id === id), [reports, id]);
+  const [showEvidence, setShowEvidence] = useState(false);
 
   const staffMember = currentUser as StaffMember;
 
@@ -119,6 +122,20 @@ export default function TeacherReportDetails() {
           </View>
         )}
 
+        {report.photoEvidence && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Photo Evidence</Text>
+            <TouchableOpacity style={styles.photoCard} onPress={() => setShowEvidence(true)}>
+              <Image
+                source={{ uri: report.photoEvidence }}
+                style={styles.evidencePhoto}
+                resizeMode="cover"
+              />
+              <Text style={styles.evidenceHint}>Tap to view</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Reporter Details</Text>
           <View style={styles.reporterCard}>
@@ -176,6 +193,31 @@ export default function TeacherReportDetails() {
           </Text>
         </View>
       </ScrollView>
+
+      <Modal visible={showEvidence} transparent animationType="fade">
+        <View style={styles.evidenceModalOverlay}>
+          <View style={styles.evidenceModalActions}>
+            <TouchableOpacity
+              style={styles.evidenceActionButton}
+              onPress={() => {
+                if (report.photoEvidence) {
+                  Linking.openURL(report.photoEvidence).catch(() => {});
+                }
+              }}
+            >
+              <Text style={styles.evidenceActionText}>Open</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.evidenceActionButton} onPress={() => setShowEvidence(false)}>
+              <Text style={styles.evidenceActionText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            source={{ uri: report.photoEvidence }}
+            style={styles.evidenceModalImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -309,6 +351,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
     lineHeight: 22,
+  },
+  photoCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  evidencePhoto: {
+    width: '100%',
+    height: 200,
+  },
+  evidenceHint: {
+    paddingVertical: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    color: colors.textSecondary,
+    backgroundColor: colors.background,
+  },
+  evidenceModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  evidenceModalActions: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 12,
+  },
+  evidenceActionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  evidenceActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  evidenceModalImage: {
+    width: '100%',
+    height: '80%',
   },
   reporterCard: {
     backgroundColor: colors.background,

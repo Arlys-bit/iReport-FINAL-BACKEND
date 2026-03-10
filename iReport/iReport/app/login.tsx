@@ -24,7 +24,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 export default function LoginScreen() {
   const router = useRouter();
   const { currentUser, login, isLoggingIn, loginError } = useAuth();
-  const { colors, isDark } = useSettings();
+  const { colors, isDark, t } = useSettings();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,17 +62,17 @@ export default function LoginScreen() {
                 style={styles.headerImage}
               />
               <Text style={[styles.title, { color: colors.text }]}>iReport</Text>
-              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to your account</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('signInSubtitle')}</Text>
             </View>
 
             <View style={styles.form}>
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+                <Text style={[styles.label, { color: colors.text }]}>{t('email')}</Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  placeholder={t('enterEmail')}
                   placeholderTextColor={colors.textLight}
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -82,13 +82,13 @@ export default function LoginScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+                <Text style={[styles.label, { color: colors.text }]}>{t('password')}</Text>
                 <View style={[styles.passwordContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <TextInput
                     style={[styles.passwordInput, { color: colors.text }]}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="Enter your password"
+                    placeholder={t('enterPassword')}
                     placeholderTextColor={colors.textLight}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
@@ -130,14 +130,14 @@ export default function LoginScreen() {
               {isLoggingIn ? (
                 <ActivityIndicator color={colors.surface} />
               ) : (
-                <Text style={[styles.loginButtonText, { color: colors.surface }]}>Sign In</Text>
+                <Text style={[styles.loginButtonText, { color: colors.surface }]}>{t('signInButton')}</Text>
               )}
             </TouchableOpacity>
 
             <View style={[styles.demoCredentials, { backgroundColor: isDark ? '#1E3A8A' : '#DBEAFE' }]}>
-              <Text style={[styles.demoTitle, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>iReport Demo Admin Credentials:</Text>
-              <Text style={[styles.demoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>Email: admin@school.edu</Text>
-              <Text style={[styles.demoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>Password: admin123</Text>
+              <Text style={[styles.demoTitle, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>{t('demoAdminCredentials')}</Text>
+              <Text style={[styles.demoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>{t('demoEmail')}</Text>
+              <Text style={[styles.demoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>{t('demoPassword')}</Text>
             </View>
           </View>
         </ScrollView>

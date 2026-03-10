@@ -109,7 +109,12 @@ export default function EmergencyHotlines() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: 'Emergency Hotlines' }} />
+      <Stack.Screen options={{ 
+        title: 'Emergency Hotlines',
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: { color: colors.text }
+      }} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.warningBanner, { backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2' }]}>
           <AlertTriangle size={20} color={isDark ? '#FCA5A5' : '#DC2626'} />

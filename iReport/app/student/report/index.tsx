@@ -19,27 +19,14 @@ import { Calendar } from 'react-native-calendars';
 import { ArrowRight, Camera, X, CheckSquare, Square } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReports } from '@/contexts/ReportContext';
-import importedColors from '@/constants/colors';
-
-const defaultColors = {
-  primary: '#3B82F6',
-  background: '#F8FAFC',
-  surface: '#FFFFFF',
-  text: '#1E293B',
-  textSecondary: '#64748B',
-  textLight: '#94A3B8',
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
-  error: '#EF4444',
-  anonymous: '#8B5CF6',
-};
-
-const colors = importedColors || defaultColors;
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function StudentReportScreen() {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const { createReport, isCreatingReport } = useReports();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
 
   const [reportingForSelf, setReportingForSelf] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -63,10 +50,14 @@ export default function StudentReportScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.7,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setPhotoEvidence(result.assets[0].uri);
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const dataUri = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
+      setPhotoEvidence(dataUri);
     }
   };
 
@@ -80,7 +71,7 @@ export default function StudentReportScreen() {
     setShowTimePicker(false);
   };
 
-  const handleSubmitReport = () => {
+  const handleSubmitReport = async () => {
     if (!victimName.trim()) {
       Alert.alert('Required Field', 'Please enter the name of the student being bullied.');
       return;
@@ -88,6 +79,11 @@ export default function StudentReportScreen() {
 
     if (!location.trim()) {
       Alert.alert('Required Field', 'Please enter the location of the incident.');
+      return;
+    }
+
+    if (!description.trim()) {
+      Alert.alert('Required Field', 'Please enter the incident description.');
       return;
     }
 
@@ -105,42 +101,65 @@ export default function StudentReportScreen() {
 
     if (!currentUser) return;
 
-    createReport({
-      reporterId: currentUser.id,
-      reporterName: currentUser.fullName,
-      reporterLRN: currentUser.lrn || '',
-      reporterPhoto: currentUser.profilePhoto,
-      isAnonymous,
-      victimName: victimName.trim(),
-      location: location.trim(),
-      description: description.trim(),
-      dateTime: cantRememberDateTime ? undefined : selectedDate + (selectedTime && selectedTime.includes(':') ? ` ${selectedTime} ${selectedPeriod}` : ''),
-      cantRememberDateTime,
-      photoEvidence,
-      reportingForSelf,
-    });
+    const buildIncidentDateTime = () => {
+      if (!selectedDate) return undefined;
+      const [rawHours, rawMinutes] = String(selectedTime || '1:00').split(':');
+      let hours = parseInt(rawHours || '1', 10);
+      const minutes = parseInt(rawMinutes || '0', 10);
 
-    Alert.alert(
-      'Report Submitted',
-      'Your incident report has been submitted successfully. Thank you for making our school safer.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setVictimName('');
-            setLocation('');
-            setDescription('');
-            setSelectedDate('');
-            setSelectedTime('1:00');
-            setSelectedPeriod('AM');
-            setCantRememberDateTime(false);
-            setPhotoEvidence(undefined);
-            setReportingForSelf(true);
-            setIsAnonymous(false);
+      if (selectedPeriod === 'PM' && hours < 12) hours += 12;
+      if (selectedPeriod === 'AM' && hours === 12) hours = 0;
+
+      const paddedHours = String(hours).padStart(2, '0');
+      const paddedMinutes = String(isNaN(minutes) ? 0 : minutes).padStart(2, '0');
+      return new Date(`${selectedDate}T${paddedHours}:${paddedMinutes}:00`).toISOString();
+    };
+
+    const incidentDateTime = cantRememberDateTime ? undefined : buildIncidentDateTime();
+
+    try {
+      await createReport({
+        reporterId: currentUser.id,
+        reporterName: currentUser.fullName,
+        reporterLRN: (currentUser as any).lrn || (currentUser as any).studentId || '',
+        reporterGradeLevelId: (currentUser as any).gradeLevelId || (currentUser as any).gradeLevel || '',
+        reporterSectionId: (currentUser as any).sectionId || (currentUser as any).section || '',
+        reporterPhoto: currentUser.profilePhoto,
+        incidentType: 'other',
+        isAnonymous,
+        victimName: victimName.trim(),
+        location: location.trim(),
+        description: description.trim(),
+        dateTime: incidentDateTime,
+        cantRememberDateTime,
+        photoEvidence,
+        reportingForSelf,
+      });
+
+      Alert.alert(
+        'Report Submitted',
+        'Your incident report has been submitted successfully. Thank you for making our school safer.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setVictimName('');
+              setLocation('');
+              setDescription('');
+              setSelectedDate('');
+              setSelectedTime('1:00');
+              setSelectedPeriod('AM');
+              setCantRememberDateTime(false);
+              setPhotoEvidence(undefined);
+              setReportingForSelf(true);
+              setIsAnonymous(false);
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert('Submit Failed', error?.message || 'Could not submit your report.');
+    }
   };
 
   return (
@@ -512,7 +531,7 @@ export default function StudentReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -613,7 +632,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   anonymousNote: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: isDark ? '#3B1F5F' : '#F5F3FF',
     padding: 12,
     borderRadius: 8,
     marginTop: 12,
@@ -718,14 +737,14 @@ const styles = StyleSheet.create({
     color: colors.surface,
   },
   safetyNote: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: isDark ? '#1E3A8A' : '#DBEAFE',
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
   },
   safetyNoteText: {
     fontSize: 14,
-    color: '#1E40AF',
+    color: isDark ? '#93C5FD' : '#1E40AF',
     lineHeight: 20,
     textAlign: 'center',
   },

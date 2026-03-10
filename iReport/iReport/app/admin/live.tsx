@@ -5,6 +5,7 @@ import { AlertTriangle, MapPin, Clock, Users, CheckCircle, X, User, ChevronRight
 import { useAuth } from '@/contexts/AuthContext';
 import { useLiveReports } from '@/contexts/LiveReportsContext';
 import { useStudents } from '@/contexts/StudentsContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { LiveIncident, StaffMember, canRespondToLiveIncidents } from '@/types';
 import * as Haptics from 'expo-haptics';
 
@@ -17,6 +18,7 @@ interface IncidentTimerProps {
 
 function IncidentTimer({ createdAt }: IncidentTimerProps) {
   const [elapsed, setElapsed] = useState(0);
+  const { colors } = useSettings();
 
   useEffect(() => {
     const startTime = new Date(createdAt).getTime();
@@ -40,7 +42,7 @@ function IncidentTimer({ createdAt }: IncidentTimerProps) {
 
   return (
     <View style={[styles.timerContainer, isUrgent && styles.timerUrgent]}>
-      <Clock size={14} color={isUrgent ? '#DC2626' : '#6B7280'} />
+      <Clock size={14} color={isUrgent ? colors.error : colors.textSecondary} />
       <Text style={[styles.timerText, isUrgent && styles.timerTextUrgent]}>
         {formatTime(elapsed)}
       </Text>
@@ -62,6 +64,7 @@ interface NotificationAlertProps {
 function NotificationAlert({ incident, onRespond, onDismiss }: NotificationAlertProps) {
   const [timeLeft, setTimeLeft] = useState(ALERT_TIMER_SECONDS);
   const pulseAnim = useState(new Animated.Value(1))[0];
+  const { colors, isDark } = useSettings();
 
   useEffect(() => {
     const startTime = new Date(incident.createdAt).getTime();
@@ -116,40 +119,40 @@ function NotificationAlert({ incident, onRespond, onDismiss }: NotificationAlert
 
   return (
     <View style={styles.alertOverlay}>
-      <Animated.View style={[styles.alertCard, { transform: [{ scale: pulseAnim }] }]}>
+      <Animated.View style={[styles.alertCard, { backgroundColor: colors.surface, transform: [{ scale: pulseAnim }] }]}>
         <View style={styles.alertHeader}>
-          <View style={styles.alertIconContainer}>
-            <AlertTriangle size={32} color="#FFFFFF" />
+          <View style={[styles.alertIconContainer, { backgroundColor: colors.error }]}>
+            <AlertTriangle size={32} color={colors.surface} />
           </View>
           <TouchableOpacity style={styles.alertCloseBtn} onPress={onDismiss}>
-            <X size={20} color="#6B7280" />
+            <X size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.alertTitle}>LIVE INCIDENT ALERT</Text>
+        <Text style={[styles.alertTitle, { color: colors.error }]}>LIVE INCIDENT ALERT</Text>
         
         <View style={styles.alertLocation}>
-          <MapPin size={18} color="#DC2626" />
-          <Text style={styles.alertLocationText}>
+          <MapPin size={18} color={colors.error} />
+          <Text style={[styles.alertLocationText, { color: colors.text }]}>
             {incident.buildingName} • {incident.floor} Floor {incident.room !== 'N/A' ? `• Room ${incident.room}` : ''}
           </Text>
         </View>
 
-        <View style={styles.alertTypeContainer}>
-          <Text style={styles.alertType}>{incident.incidentType.replace('_', ' ').toUpperCase()}</Text>
+        <View style={[styles.alertTypeContainer, { backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2' }]}>
+          <Text style={[styles.alertType, { color: colors.error }]}>{incident.incidentType.replace('_', ' ').toUpperCase()}</Text>
         </View>
 
-        <Text style={styles.alertDescription} numberOfLines={2}>
+        <Text style={[styles.alertDescription, { color: colors.textSecondary }]} numberOfLines={2}>
           {incident.description}
         </Text>
 
-        <View style={styles.alertTimerBar}>
-          <View style={[styles.alertTimerFill, { width: `${(timeLeft / ALERT_TIMER_SECONDS) * 100}%` }]} />
+        <View style={[styles.alertTimerBar, { backgroundColor: colors.border }]}>
+          <View style={[styles.alertTimerFill, { backgroundColor: colors.error, width: `${(timeLeft / ALERT_TIMER_SECONDS) * 100}%` }]} />
         </View>
-        <Text style={styles.alertTimerText}>{timeLeft}s to respond</Text>
+        <Text style={[styles.alertTimerText, { color: colors.textSecondary }]}>{timeLeft}s to respond</Text>
 
-        <TouchableOpacity style={styles.alertRespondBtn} onPress={onRespond}>
-          <Text style={styles.alertRespondBtnText}>I AM RESPONDING</Text>
+        <TouchableOpacity style={[styles.alertRespondBtn, { backgroundColor: colors.error }]} onPress={onRespond}>
+          <Text style={[styles.alertRespondBtnText, { color: colors.surface }]}>I AM RESPONDING</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -158,6 +161,8 @@ function NotificationAlert({ incident, onRespond, onDismiss }: NotificationAlert
 
 export default function LiveIncidentsScreen() {
   const { currentUser } = useAuth();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
   const liveReports = useLiveReports();
   const incidents = liveReports?.incidents ?? [];
   const activeIncidents = liveReports?.activeIncidents ?? [];
@@ -252,9 +257,9 @@ export default function LiveIncidentsScreen() {
   }, [alertIncident]);
 
   const getStatusColor = (incident: LiveIncident) => {
-    if (incident.status === 'resolved') return '#10B981';
-    if (incident.responders.length > 0) return '#F59E0B';
-    return '#DC2626';
+    if (incident.status === 'resolved') return colors.success;
+    if (incident.responders.length > 0) return colors.warning;
+    return colors.error;
   };
 
   const getStatusLabel = (incident: LiveIncident) => {
@@ -282,8 +287,9 @@ export default function LiveIncidentsScreen() {
       <Stack.Screen 
         options={{ 
           title: 'Live Incidents',
-          headerStyle: { backgroundColor: '#DC2626' },
-          headerTintColor: '#FFFFFF',
+          headerStyle: { backgroundColor: isDark ? colors.background : '#DC2626' },
+          headerTintColor: isDark ? colors.text : '#FFFFFF',
+          headerTitleStyle: { color: isDark ? colors.text : '#FFFFFF' },
         }} 
       />
 
@@ -563,18 +569,18 @@ export default function LiveIncidentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   statsBar: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   statItem: {
     flex: 1,
@@ -584,16 +590,16 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold' as const,
-    color: '#111827',
+    color: colors.text,
   },
   statLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '500' as const,
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     marginHorizontal: 8,
   },
   content: {
@@ -603,7 +609,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#374151',
+    color: colors.text,
     marginBottom: 12,
   },
   emptyState: {
@@ -613,25 +619,25 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold' as const,
-    color: '#10B981',
+    color: colors.success,
     marginTop: 16,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   incidentCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   incidentCardResponding: {
-    borderColor: '#10B981',
-    backgroundColor: '#F0FDF4',
+    borderColor: colors.success,
+    backgroundColor: isDark ? `${colors.success}1A` : '#F0FDF4',
   },
   incidentCardResolved: {
     opacity: 0.7,
@@ -660,36 +666,36 @@ const styles = StyleSheet.create({
   incidentLocation: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   incidentType: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
     textTransform: 'capitalize',
   },
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSecondary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     gap: 4,
   },
   timerUrgent: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
   },
   timerText: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   timerTextUrgent: {
-    color: '#DC2626',
+    color: colors.error,
   },
   urgentBadge: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 3,
@@ -698,11 +704,11 @@ const styles = StyleSheet.create({
   urgentBadgeText: {
     fontSize: 8,
     fontWeight: 'bold' as const,
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   incidentDescription: {
     fontSize: 14,
-    color: '#4B5563',
+    color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -721,13 +727,13 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   respondBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 6,
   },
   respondBtnText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 12,
     fontWeight: '600' as const,
   },
@@ -739,12 +745,12 @@ const styles = StyleSheet.create({
   },
   myResponseText: {
     fontSize: 12,
-    color: '#10B981',
+    color: colors.success,
     fontWeight: '500' as const,
   },
   resolvedTime: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textLight,
   },
   alertOverlay: {
     position: 'absolute',
@@ -759,7 +765,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   alertCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -777,7 +783,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -787,7 +793,7 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 18,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
     marginBottom: 16,
     letterSpacing: 1,
   },
@@ -800,10 +806,10 @@ const styles = StyleSheet.create({
   alertLocationText: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   alertTypeContainer: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -812,11 +818,11 @@ const styles = StyleSheet.create({
   alertType: {
     fontSize: 14,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   alertDescription: {
     fontSize: 14,
-    color: '#4B5563',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 20,
@@ -824,30 +830,30 @@ const styles = StyleSheet.create({
   alertTimerBar: {
     width: '100%',
     height: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 8,
   },
   alertTimerFill: {
     height: '100%',
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     borderRadius: 3,
   },
   alertTimerText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 20,
   },
   alertRespondBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     width: '100%',
   },
   alertRespondBtnText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: 'bold' as const,
     textAlign: 'center',
@@ -859,7 +865,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
@@ -869,7 +875,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
     gap: 12,
   },
   modalStatusDot: {
@@ -881,7 +887,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: 'bold' as const,
-    color: '#111827',
+    color: colors.text,
   },
   modalBody: {
     padding: 20,
@@ -892,7 +898,7 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -900,7 +906,7 @@ const styles = StyleSheet.create({
   locationBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEF2F2',
     padding: 12,
     borderRadius: 10,
     gap: 12,
@@ -908,15 +914,15 @@ const styles = StyleSheet.create({
   locationPrimary: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   locationSecondary: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   typeBox: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
@@ -925,17 +931,17 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 14,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   descriptionText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
     lineHeight: 22,
   },
   reporterBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSecondary,
     padding: 12,
     borderRadius: 10,
     gap: 12,
@@ -943,26 +949,26 @@ const styles = StyleSheet.create({
   reporterName: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   reporterGrade: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   timeText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
   },
   noResponders: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textLight,
     fontStyle: 'italic',
   },
   responderItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSecondary,
     padding: 12,
     borderRadius: 10,
     marginBottom: 8,
@@ -971,7 +977,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryDark,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -982,21 +988,21 @@ const styles = StyleSheet.create({
   responderName: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   responderRole: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   responderTime: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textLight,
   },
   resolvedBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DCFCE7',
+    backgroundColor: isDark ? `${colors.success}1A` : '#DCFCE7',
     padding: 12,
     borderRadius: 10,
     gap: 12,
@@ -1004,24 +1010,24 @@ const styles = StyleSheet.create({
   resolvedByName: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#166534',
+    color: colors.success,
   },
   modalFooter: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
   },
   respondButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 10,
   },
   respondButtonText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '600' as const,
   },
@@ -1029,13 +1035,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 10,
   },
   resolveButtonText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '600' as const,
   },
@@ -1045,19 +1051,19 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryDark,
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 30,
     gap: 8,
-    shadowColor: '#6366F1',
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   mapButtonText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 14,
     fontWeight: '600' as const,
   },

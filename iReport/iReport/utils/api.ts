@@ -159,3 +159,8 @@ export const buildingsApi = {
   updateBuilding: (id: string, data: any) => apiClient.put(`/buildings/${id}`, data),
   deleteBuilding: (id: string) => apiClient.delete(`/buildings/${id}`),
 };
+
+// Bot API
+export const botApi = {
+  sendMessage: (message: string) => apiClient.post('/bot', { message }),
+};

@@ -35,13 +35,13 @@ import { STAFF_POSITIONS } from '@/constants/staff';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'fil', name: 'Filipino' },
+  { code: 'fil', name: 'Tagalog' },
 ] as const;
 
 export default function AdminProfile() {
   const { currentUser, updateCurrentUser, logout } = useAuth();
   const { updateStaff, changePassword } = useStaff();
-  const { isDark, setTheme, language, setLanguage, colors } = useSettings();
+  const { isDark, setTheme, language, setLanguage, colors, t } = useSettings();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -57,17 +57,21 @@ export default function AdminProfile() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
       try {
+        const asset = result.assets[0];
+        const mimeType = asset.mimeType || 'image/jpeg';
+        const photoData = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
         updateStaff({
           id: staffMember.id,
-          updates: { profilePhoto: result.assets[0].uri },
+          updates: { profilePhoto: photoData },
           adminId: staffMember.id,
           adminName: staffMember.fullName,
         });
-        updateCurrentUser({ profilePhoto: result.assets[0].uri });
+        updateCurrentUser({ profilePhoto: photoData });
         Alert.alert('Success', 'Profile photo updated');
       } catch (error: any) {
         Alert.alert('Error', error.message || 'Failed to update photo');
@@ -457,14 +461,14 @@ export default function AdminProfile() {
         </View>
 
         <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Staff Information</Text>
+          <Text style={dynamicStyles.sectionTitle}>{t('staffInformation')}</Text>
 
           <View style={dynamicStyles.infoRow}>
             <View style={dynamicStyles.infoIcon}>
               <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={dynamicStyles.infoContent}>
-              <Text style={dynamicStyles.infoLabel}>Staff ID</Text>
+              <Text style={dynamicStyles.infoLabel}>{t('staffId')}</Text>
               <Text style={dynamicStyles.infoValue}>{displayStaffId}</Text>
             </View>
           </View>
@@ -474,7 +478,7 @@ export default function AdminProfile() {
               <Mail size={20} color={colors.primary} />
             </View>
             <View style={dynamicStyles.infoContent}>
-              <Text style={dynamicStyles.infoLabel}>School Email</Text>
+              <Text style={dynamicStyles.infoLabel}>{t('schoolEmail')}</Text>
               <Text style={dynamicStyles.infoValue}>{displaySchoolEmail}</Text>
             </View>
           </View>
@@ -484,35 +488,35 @@ export default function AdminProfile() {
               <Briefcase size={20} color={colors.primary} />
             </View>
             <View style={dynamicStyles.infoContent}>
-              <Text style={dynamicStyles.infoLabel}>Position</Text>
+              <Text style={dynamicStyles.infoLabel}>{t('position')}</Text>
               <Text style={dynamicStyles.infoValue}>{getPositionName(displayPosition)}</Text>
             </View>
           </View>
         </View>
 
         <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Account Settings</Text>
+          <Text style={dynamicStyles.sectionTitle}>{t('accountSettings')}</Text>
 
           <TouchableOpacity style={dynamicStyles.settingRow} onPress={() => setShowPasswordModal(true)}>
             <View style={dynamicStyles.settingLeft}>
               <View style={dynamicStyles.settingIcon}>
                 <Lock size={20} color={colors.primary} />
               </View>
-              <Text style={dynamicStyles.settingLabel}>Change Password</Text>
+              <Text style={dynamicStyles.settingLabel}>{t('changePassword')}</Text>
             </View>
             <ChevronRight size={20} color={colors.textLight} />
           </TouchableOpacity>
         </View>
 
         <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Preferences</Text>
+          <Text style={dynamicStyles.sectionTitle}>{t('preferences')}</Text>
 
           <View style={dynamicStyles.settingRow}>
             <View style={dynamicStyles.settingLeft}>
               <View style={dynamicStyles.settingIcon}>
                 <Moon size={20} color={colors.primary} />
               </View>
-              <Text style={dynamicStyles.settingLabel}>Dark Mode</Text>
+              <Text style={dynamicStyles.settingLabel}>{t('darkMode')}</Text>
             </View>
             <Switch
               value={isDark}
@@ -528,7 +532,7 @@ export default function AdminProfile() {
                 <Globe size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={dynamicStyles.settingLabel}>Language</Text>
+                <Text style={dynamicStyles.settingLabel}>{t('language')}</Text>
                 <Text style={dynamicStyles.settingValue}>{getLanguageName(language)}</Text>
               </View>
             </View>
@@ -538,7 +542,7 @@ export default function AdminProfile() {
 
         <TouchableOpacity style={dynamicStyles.logoutButton} onPress={handleLogout}>
           <LogOut size={20} color={colors.error} />
-          <Text style={dynamicStyles.logoutButtonText}>Logout</Text>
+          <Text style={dynamicStyles.logoutButtonText}>{t('logout')}</Text>
         </TouchableOpacity>
 
         <View style={{ height: 32 }} />
@@ -547,47 +551,47 @@ export default function AdminProfile() {
       <Modal visible={showPasswordModal} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={dynamicStyles.modalContainer} edges={['top', 'bottom']}>
           <View style={dynamicStyles.modalHeader}>
-            <Text style={dynamicStyles.modalTitle}>Change Password</Text>
+            <Text style={dynamicStyles.modalTitle}>{t('changePassword')}</Text>
             <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           <View style={dynamicStyles.modalContent}>
             <View style={dynamicStyles.inputGroup}>
-              <Text style={dynamicStyles.label}>Current Password</Text>
+              <Text style={dynamicStyles.label}>{t('currentPassword')}</Text>
               <TextInput
                 style={dynamicStyles.input}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
+                placeholder={t('currentPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <View style={dynamicStyles.inputGroup}>
-              <Text style={dynamicStyles.label}>New Password</Text>
+              <Text style={dynamicStyles.label}>{t('newPassword')}</Text>
               <TextInput
                 style={dynamicStyles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t('newPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <View style={dynamicStyles.inputGroup}>
-              <Text style={dynamicStyles.label}>Confirm New Password</Text>
+              <Text style={dynamicStyles.label}>{t('confirmNewPassword')}</Text>
               <TextInput
                 style={dynamicStyles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('confirmNewPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <TouchableOpacity style={dynamicStyles.modalButton} onPress={handleChangePassword}>
-              <Text style={dynamicStyles.modalButtonText}>Change Password</Text>
+              <Text style={dynamicStyles.modalButtonText}>{t('changePassword')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -600,7 +604,7 @@ export default function AdminProfile() {
           onPress={() => setShowLanguageModal(false)}
         >
           <View style={dynamicStyles.pickerModal}>
-            <Text style={dynamicStyles.pickerTitle}>Select Language</Text>
+            <Text style={dynamicStyles.pickerTitle}>{t('selectLanguage')}</Text>
             {LANGUAGES.map(lang => (
               <TouchableOpacity
                 key={lang.code}

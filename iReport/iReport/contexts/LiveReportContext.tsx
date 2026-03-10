@@ -44,7 +44,7 @@ export const [LiveReportsProvider, useLiveReports] = createContextHook(() => {
       floor: string;
       room: string;
       incidentType: string;
-      description: string;
+      description?: string;
     }) => {
       try {
         // Try API first

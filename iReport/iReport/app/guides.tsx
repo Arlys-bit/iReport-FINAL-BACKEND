@@ -7,7 +7,12 @@ export default function GuidesScreen() {
   const { colors } = useSettings();
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: 'Guides' }} />
+      <Stack.Screen options={{ 
+        title: 'Guides',
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: { color: colors.text }
+      }} />
       <View style={styles.content}>
         <Text style={[styles.text, { color: colors.text }]}>Guides and Resources</Text>
       </View>

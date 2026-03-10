@@ -11,6 +11,7 @@ import reportRoutes from './routes/reportRoutes';
 import liveIncidentRoutes from './routes/liveIncidentRoutes';
 import studentRoutes from './routes/studentRoutes';
 import buildingRoutes from './routes/buildingRoutes';
+import botRoutes from './routes/botRoutes';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/live-incidents', liveIncidentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/buildings', buildingRoutes);
+app.use('/api/bot', botRoutes);
 
 // Error handling
 app.use(notFound);

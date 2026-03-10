@@ -258,6 +258,14 @@ export const [StudentsProvider, useStudents] = createContextHook(() => {
 
   const updateStudentMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Student> }) => {
+      try {
+        const updated: any = await studentsApi.updateStudent(id, updates);
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        return normalizeStudent(updated);
+      } catch (apiError) {
+        logger.warn('API update student failed, using local storage:', apiError);
+      }
+
       const students: Student[] = studentsQuery.data || [];
       const index = students.findIndex(s => s.id === id);
       

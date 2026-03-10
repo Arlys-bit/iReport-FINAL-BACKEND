@@ -20,12 +20,14 @@ import {
 } from 'lucide-react-native';
 import { useReports } from '@/contexts/ReportContext';
 import { useStudents } from '@/contexts/StudentsContext';
-import colors from '@/constants/colors';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function StudentReportDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { reports } = useReports();
   const { gradeLevels, sections } = useStudents();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
 
   const report = useMemo(() => {
     return reports.find(r => {
@@ -64,34 +66,36 @@ export default function StudentReportDetail() {
               : 'N/A',
         };
 
+  const softBg = (hex: string) => (isDark ? `${hex}1A` : hex);
+
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'under_review':
         return { 
           icon: Clock, 
           color: '#F59E0B', 
-          bgColor: '#FEF3C7',
+          bgColor: softBg('#FEF3C7'),
           label: 'Under Review' 
         };
       case 'accepted':
         return { 
           icon: CheckCircle, 
           color: '#10B981', 
-          bgColor: '#D1FAE5',
+          bgColor: softBg('#D1FAE5'),
           label: 'Accepted' 
         };
       case 'declined':
         return { 
           icon: XCircle, 
           color: '#EF4444', 
-          bgColor: '#FEE2E2',
+          bgColor: softBg('#FEE2E2'),
           label: 'Declined' 
         };
       default:
         return { 
           icon: Clock, 
           color: '#64748B', 
-          bgColor: '#F1F5F9',
+          bgColor: softBg('#F1F5F9'),
           label: 'Unknown' 
         };
     }
@@ -116,13 +120,13 @@ export default function StudentReportDetail() {
   const getPriorityConfig = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return { color: '#DC2626', bgColor: '#FEE2E2', label: 'Urgent' };
+        return { color: '#DC2626', bgColor: softBg('#FEE2E2'), label: 'Urgent' };
       case 'high':
-        return { color: '#EA580C', bgColor: '#FFEDD5', label: 'High' };
+        return { color: '#EA580C', bgColor: softBg('#FFEDD5'), label: 'High' };
       case 'medium':
-        return { color: '#F59E0B', bgColor: '#FEF3C7', label: 'Medium' };
+        return { color: '#F59E0B', bgColor: softBg('#FEF3C7'), label: 'Medium' };
       default:
-        return { color: '#64748B', bgColor: '#F1F5F9', label: 'Low' };
+        return { color: '#64748B', bgColor: softBg('#F1F5F9'), label: 'Low' };
     }
   };
 
@@ -374,7 +378,7 @@ export default function StudentReportDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -421,20 +425,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+    borderLeftColor: colors.error,
   },
   declineReasonTitle: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#991B1B',
+    color: isDark ? colors.error : '#991B1B',
     marginBottom: 6,
   },
   declineReasonText: {
     fontSize: 14,
-    color: '#B91C1C',
+    color: isDark ? colors.textSecondary : '#B91C1C',
     lineHeight: 20,
   },
   section: {
@@ -558,13 +562,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 8,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: isDark ? `${colors.primary}1A` : '#EEF2FF',
     borderRadius: 8,
   },
   anonymousText: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: '#6366F1',
+    color: colors.primary,
   },
   timelineCard: {
     backgroundColor: colors.surface,

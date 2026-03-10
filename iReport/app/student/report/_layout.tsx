@@ -10,7 +10,7 @@ export default function StudentReportsLayout() {
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: 'Report Details' }}
+        options={{ headerShown: false }}
       />
     </Stack>
   );

@@ -34,14 +34,14 @@ import { Student } from '@/types';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'fil', name: 'Filipino' },
+  { code: 'fil', name: 'Tagalog' },
 ];
 
 export default function StudentProfile() {
   const { currentUser, updateCurrentUser, logout } = useAuth();
   const { gradeLevels, sections, updateStudent, resetStudentPassword } = useStudents();
-  const { isDark, setTheme, language, setLanguage, colors } = useSettings();
-  const styles = getStyles(colors);
+  const { isDark, setTheme, language, setLanguage, colors, t } = useSettings();
+  const styles = getStyles(colors, isDark);
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -81,15 +81,19 @@ export default function StudentProfile() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
       try {
+        const asset = result.assets[0];
+        const mimeType = asset.mimeType || 'image/jpeg';
+        const photoData = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
         await updateStudent({
           id: student.id,
-          updates: { profilePhoto: result.assets[0].uri },
+          updates: { profilePhoto: photoData },
         });
-        updateCurrentUser({ profilePhoto: result.assets[0].uri });
+        updateCurrentUser({ profilePhoto: photoData });
         Alert.alert('Success', 'Profile photo updated');
       } catch (error: any) {
         Alert.alert('Error', error.message || 'Failed to update photo');
@@ -217,14 +221,14 @@ export default function StudentProfile() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Student Information</Text>
+          <Text style={styles.sectionTitle}>{t('studentInformation')}</Text>
 
           <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
               <CreditCard size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>LRN</Text>
+              <Text style={styles.infoLabel}>{t('lrn')}</Text>
               <Text style={styles.infoValue}>{displayLRN}</Text>
             </View>
           </View>
@@ -234,7 +238,7 @@ export default function StudentProfile() {
               <Mail size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>School Email</Text>
+              <Text style={styles.infoLabel}>{t('schoolEmail')}</Text>
               <Text style={styles.infoValue}>{displaySchoolEmail}</Text>
             </View>
           </View>
@@ -244,35 +248,35 @@ export default function StudentProfile() {
               <GraduationCap size={20} color={colors.primary} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Grade & Section</Text>
+              <Text style={styles.infoLabel}>{t('gradeAndSection')}</Text>
               <Text style={styles.infoValue}>{displayGradeSection}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Settings</Text>
+          <Text style={styles.sectionTitle}>{t('accountSettings')}</Text>
 
           <TouchableOpacity style={styles.settingRow} onPress={() => setShowPasswordModal(true)}>
             <View style={styles.settingLeft}>
               <View style={styles.settingIcon}>
                 <Lock size={20} color={colors.primary} />
               </View>
-              <Text style={styles.settingLabel}>Change Password</Text>
+              <Text style={styles.settingLabel}>{t('changePassword')}</Text>
             </View>
             <ChevronRight size={20} color={colors.textLight} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>{t('preferences')}</Text>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
               <View style={styles.settingIcon}>
                 <Moon size={20} color={colors.primary} />
               </View>
-              <Text style={styles.settingLabel}>Dark Mode</Text>
+              <Text style={styles.settingLabel}>{t('darkMode')}</Text>
             </View>
             <Switch
               value={isDark}
@@ -288,7 +292,7 @@ export default function StudentProfile() {
                 <Globe size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingLabel}>Language</Text>
+                <Text style={styles.settingLabel}>{t('language')}</Text>
                 <Text style={styles.settingValue}>{getLanguageName(language)}</Text>
               </View>
             </View>
@@ -298,7 +302,7 @@ export default function StudentProfile() {
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <LogOut size={20} color={colors.error} />
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <Text style={styles.logoutButtonText}>{t('logout')}</Text>
         </TouchableOpacity>
 
         {student.violationHistory && student.violationHistory.length > 0 && (
@@ -324,47 +328,47 @@ export default function StudentProfile() {
       <Modal visible={showPasswordModal} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Change Password</Text>
+            <Text style={styles.modalTitle}>{t('changePassword')}</Text>
             <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           <View style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Current Password</Text>
+              <Text style={styles.label}>{t('currentPassword')}</Text>
               <TextInput
                 style={styles.input}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
+                placeholder={t('currentPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>{t('newPassword')}</Text>
               <TextInput
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t('newPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm New Password</Text>
+              <Text style={styles.label}>{t('confirmNewPassword')}</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('confirmNewPassword')}
                 placeholderTextColor={colors.textLight}
                 secureTextEntry
               />
             </View>
             <TouchableOpacity style={styles.modalButton} onPress={handleChangePassword}>
-              <Text style={styles.modalButtonText}>Change Password</Text>
+              <Text style={styles.modalButtonText}>{t('changePassword')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -377,7 +381,7 @@ export default function StudentProfile() {
           onPress={() => setShowLanguageModal(false)}
         >
           <View style={styles.pickerModal}>
-            <Text style={styles.pickerTitle}>Select Language</Text>
+            <Text style={styles.pickerTitle}>{t('selectLanguage')}</Text>
             {LANGUAGES.map(lang => (
               <TouchableOpacity
                 key={lang.code}
@@ -407,7 +411,7 @@ export default function StudentProfile() {
   );
 }
 
-const getStyles = (colors: any) => StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -570,7 +574,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     color: colors.error,
   },
   violationCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: isDark ? `${colors.warning}1A` : '#FEF3C7',
     borderRadius: 10,
     padding: 14,
     marginBottom: 10,
@@ -578,17 +582,17 @@ const getStyles = (colors: any) => StyleSheet.create({
   violationType: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: '#92400E',
+    color: isDark ? '#FCD34D' : '#92400E',
     marginBottom: 4,
   },
   violationDescription: {
     fontSize: 14,
-    color: '#78350F',
+    color: isDark ? colors.text : '#78350F',
     marginBottom: 4,
   },
   violationDate: {
     fontSize: 12,
-    color: '#A16207',
+    color: isDark ? colors.textSecondary : '#A16207',
   },
   bottomSpacer: {
     height: 32,

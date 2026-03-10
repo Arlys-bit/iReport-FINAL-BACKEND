@@ -50,10 +50,14 @@ export default function StudentReportScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.7,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setPhotoEvidence(result.assets[0].uri);
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const dataUri = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
+      setPhotoEvidence(dataUri);
     }
   };
 
@@ -97,6 +101,22 @@ export default function StudentReportScreen() {
 
     if (!currentUser) return;
 
+    const buildIncidentDateTime = () => {
+      if (!selectedDate) return undefined;
+      const [rawHours, rawMinutes] = String(selectedTime || '1:00').split(':');
+      let hours = parseInt(rawHours || '1', 10);
+      const minutes = parseInt(rawMinutes || '0', 10);
+
+      if (selectedPeriod === 'PM' && hours < 12) hours += 12;
+      if (selectedPeriod === 'AM' && hours === 12) hours = 0;
+
+      const paddedHours = String(hours).padStart(2, '0');
+      const paddedMinutes = String(isNaN(minutes) ? 0 : minutes).padStart(2, '0');
+      return new Date(`${selectedDate}T${paddedHours}:${paddedMinutes}:00`).toISOString();
+    };
+
+    const incidentDateTime = cantRememberDateTime ? undefined : buildIncidentDateTime();
+
     try {
       await createReport({
         reporterId: currentUser.id,
@@ -110,13 +130,7 @@ export default function StudentReportScreen() {
         victimName: victimName.trim(),
         location: location.trim(),
         description: description.trim(),
-        dateTime:
-          cantRememberDateTime
-            ? undefined
-            : selectedDate +
-              (selectedTime && selectedTime.includes(':')
-                ? ` ${selectedTime} ${selectedPeriod}`
-                : ''),
+        dateTime: incidentDateTime,
         cantRememberDateTime,
         photoEvidence,
         reportingForSelf,

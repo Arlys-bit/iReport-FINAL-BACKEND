@@ -10,10 +10,11 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { 
+import {
   Calendar, 
   User, 
   AlertTriangle,
@@ -26,20 +27,23 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useReports } from '@/contexts/ReportContext';
 import { useStudents } from '@/contexts/StudentsContext';
-import { IncidentReport, ReportStatus, StaffMember } from '@/types';
-import { INCIDENT_TYPES, STATUS_COLORS } from '@/constants/school';
-import colors from '@/constants/colors';
+import { useSettings } from '@/contexts/SettingsContext';
+import { ReportStatus, StaffMember } from '@/types';
+import { INCIDENT_TYPES } from '@/constants/school';
 
 export default function ReportDetails() {
   const { id } = useLocalSearchParams();
   const { currentUser } = useAuth();
   const { reports, updateReportStatus, addReviewNote, isUpdatingStatus } = useReports();
   const { gradeLevels, sections } = useStudents();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
 
   const report = useMemo(() => reports.find(r => r.id === id), [reports, id]);
 
   const [showActionModal, setShowActionModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
   const [selectedAction, setSelectedAction] = useState<'accepted' | 'declined' | null>(null);
   const [notes, setNotes] = useState('');
   const [declineReason, setDeclineReason] = useState('');
@@ -62,6 +66,7 @@ export default function ReportDetails() {
   const incidentInfo = INCIDENT_TYPES.find(t => t.value === report.incidentType);
   const reporterGrade = gradeLevels.find(g => g.id === report.reporterGradeLevelId);
   const reporterSection = sections.find(s => s.id === report.reporterSectionId);
+  const typeColor = incidentInfo?.color || colors.primary;
 
   const handleAction = async () => {
     if (!selectedAction) return;
@@ -113,25 +118,27 @@ export default function ReportDetails() {
 
   const getStatusColor = (status: ReportStatus) => {
     switch (status) {
-      case 'under_review': return '#F59E0B';
-      case 'accepted': return '#10B981';
-      case 'declined': return '#EF4444';
-      default: return '#64748B';
+      case 'under_review': return colors.warning;
+      case 'accepted': return colors.success;
+      case 'declined': return colors.error;
+      default: return colors.textLight;
     }
   };
+  const statusColor = getStatusColor(report.status);
+  const softBg = (hex: string, alphaLight = '20', alphaDark = '33') => `${hex}${isDark ? alphaDark : alphaLight}`;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.content}>
         <View style={styles.headerCard}>
           <View style={styles.headerTop}>
-            <View style={[styles.typeBadge, { backgroundColor: incidentInfo?.color + '20' }]}>
-              <Text style={[styles.typeBadgeText, { color: incidentInfo?.color }]}>
+            <View style={[styles.typeBadge, { backgroundColor: softBg(typeColor) }]}>
+              <Text style={[styles.typeBadgeText, { color: typeColor }]}>
                 {incidentInfo?.label || report.incidentType}
               </Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(report.status) + '20' }]}>
-              <Text style={[styles.statusBadgeText, { color: getStatusColor(report.status) }]}>
+            <View style={[styles.statusBadge, { backgroundColor: softBg(statusColor) }]}>
+              <Text style={[styles.statusBadgeText, { color: statusColor }]}>
                 {report.status.replace(/_/g, ' ')}
               </Text>
             </View>
@@ -163,6 +170,20 @@ export default function ReportDetails() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
             <Text style={styles.descriptionText}>{report.description}</Text>
+          </View>
+        )}
+
+        {report.photoEvidence && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Photo Evidence</Text>
+            <TouchableOpacity style={styles.photoCard} onPress={() => setShowEvidence(true)}>
+              <Image
+                source={{ uri: report.photoEvidence }}
+                style={styles.evidencePhoto}
+                resizeMode="cover"
+              />
+              <Text style={styles.evidenceHint}>Tap to view</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -241,7 +262,7 @@ export default function ReportDetails() {
 
         {report.declineReason && (
           <View style={styles.declineBox}>
-            <AlertTriangle size={18} color="#991B1B" />
+            <AlertTriangle size={18} color={colors.error} />
             <View style={styles.declineContent}>
               <Text style={styles.declineLabel}>Decline Reason:</Text>
               <Text style={styles.declineText}>{report.declineReason}</Text>
@@ -267,7 +288,7 @@ export default function ReportDetails() {
                 setShowActionModal(true);
               }}
             >
-              <XCircle size={18} color="#EF4444" />
+              <XCircle size={18} color={colors.error} />
               <Text style={styles.declineButtonText}>Decline</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -372,11 +393,39 @@ export default function ReportDetails() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      <Modal visible={showEvidence} transparent animationType="fade">
+        <View style={styles.evidenceModalOverlay}>
+          <View style={styles.evidenceModalActions}>
+            <TouchableOpacity
+              style={styles.evidenceActionButton}
+              onPress={() => {
+                if (report.photoEvidence) {
+                  Linking.openURL(report.photoEvidence).catch(() => {});
+                }
+              }}
+            >
+              <Text style={styles.evidenceActionText}>Open</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.evidenceActionButton} onPress={() => setShowEvidence(false)}>
+              <Text style={styles.evidenceActionText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            source={{ uri: report.photoEvidence }}
+            style={styles.evidenceModalImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => {
+  const softBg = (hex: string, alphaLight = '1A', alphaDark = '33') => `${hex}${isDark ? alphaDark : alphaLight}`;
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -495,8 +544,55 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
   },
+  photoCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  evidencePhoto: {
+    width: '100%',
+    height: 200,
+  },
+  evidenceHint: {
+    paddingVertical: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    color: colors.textSecondary,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  evidenceModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  evidenceModalActions: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 12,
+  },
+  evidenceActionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  evidenceActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  evidenceModalImage: {
+    width: '100%',
+    height: '80%',
+  },
   anonymousBadge: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
@@ -581,7 +677,7 @@ const styles = StyleSheet.create({
   },
   declineBox: {
     flexDirection: 'row',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: softBg(colors.error),
     margin: 16,
     padding: 14,
     borderRadius: 12,
@@ -593,12 +689,12 @@ const styles = StyleSheet.create({
   declineLabel: {
     fontSize: 13,
     fontWeight: '600' as const,
-    color: '#991B1B',
+    color: colors.error,
     marginBottom: 4,
   },
   declineText: {
     fontSize: 14,
-    color: '#B91C1C',
+    color: colors.text,
   },
   footer: {
     padding: 16,
@@ -636,15 +732,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   declineButton: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: softBg(colors.error),
   },
   declineButtonText: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#EF4444',
+    color: colors.error,
   },
   acceptButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
   },
   acceptButtonText: {
     fontSize: 15,
@@ -707,10 +803,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   submitButtonAccept: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
   },
   submitButtonDecline: {
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.error,
   },
   submitButtonDisabled: {
     opacity: 0.6,
@@ -720,4 +816,5 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: colors.surface,
   },
-});
+  });
+};

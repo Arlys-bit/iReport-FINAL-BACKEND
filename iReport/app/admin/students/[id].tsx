@@ -33,8 +33,8 @@ import { useStudents } from '@/contexts/StudentsContext';
 import { useStaff } from '@/contexts/StaffContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReports } from '@/contexts/ReportContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Student, ViolationRecord } from '@/types';
-import colors from '@/constants/colors';
 
 export default function StudentProfile() {
   const { id } = useLocalSearchParams();
@@ -42,6 +42,8 @@ export default function StudentProfile() {
   const { students, gradeLevels, sections, updateStudent, promoteStudent, transferStudent, deleteStudent, resetStudentPassword, isUpdating } = useStudents();
   const { staff } = useStaff();
   const { reports } = useReports();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
 
   const student = useMemo(() => students.find(s => s.id === id), [students, id]);
 
@@ -674,7 +676,10 @@ export default function StudentProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => {
+  const softBg = (hex: string, alphaLight = '1A', alphaDark = '33') => `${hex}${isDark ? alphaDark : alphaLight}`;
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -782,7 +787,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   deleteButton: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: softBg(colors.error),
   },
   deleteButtonText: {
     color: colors.error,
@@ -859,7 +864,7 @@ const styles = StyleSheet.create({
     color: colors.surface,
   },
   violationCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: softBg(colors.warning),
     borderRadius: 10,
     padding: 14,
     marginBottom: 10,
@@ -867,17 +872,17 @@ const styles = StyleSheet.create({
   violationType: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: '#92400E',
+    color: colors.warning,
     marginBottom: 4,
   },
   violationDescription: {
     fontSize: 14,
-    color: '#78350F',
+    color: colors.text,
     marginBottom: 4,
   },
   violationDate: {
     fontSize: 12,
-    color: '#A16207',
+    color: colors.textSecondary,
   },
   actionCard: {
     flexDirection: 'row',
@@ -1090,4 +1095,5 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: colors.primary,
   },
-});
+  });
+};

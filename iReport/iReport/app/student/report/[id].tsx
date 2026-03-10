@@ -1,10 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Image,
+  TouchableOpacity,
+  Modal,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { 
@@ -20,12 +23,15 @@ import {
 } from 'lucide-react-native';
 import { useReports } from '@/contexts/ReportContext';
 import { useStudents } from '@/contexts/StudentsContext';
-import colors from '@/constants/colors';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function StudentReportDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { reports } = useReports();
   const { gradeLevels, sections } = useStudents();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
+  const [showEvidence, setShowEvidence] = useState(false);
 
   const report = useMemo(() => {
     return reports.find(r => {
@@ -64,34 +70,36 @@ export default function StudentReportDetail() {
               : 'N/A',
         };
 
+  const softBg = (hex: string) => (isDark ? `${hex}1A` : hex);
+
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'under_review':
         return { 
           icon: Clock, 
           color: '#F59E0B', 
-          bgColor: '#FEF3C7',
+          bgColor: softBg('#FEF3C7'),
           label: 'Under Review' 
         };
       case 'accepted':
         return { 
           icon: CheckCircle, 
           color: '#10B981', 
-          bgColor: '#D1FAE5',
+          bgColor: softBg('#D1FAE5'),
           label: 'Accepted' 
         };
       case 'declined':
         return { 
           icon: XCircle, 
           color: '#EF4444', 
-          bgColor: '#FEE2E2',
+          bgColor: softBg('#FEE2E2'),
           label: 'Declined' 
         };
       default:
         return { 
           icon: Clock, 
           color: '#64748B', 
-          bgColor: '#F1F5F9',
+          bgColor: softBg('#F1F5F9'),
           label: 'Under Review' 
         };
     }
@@ -125,13 +133,13 @@ export default function StudentReportDetail() {
   const getPriorityConfig = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return { color: '#DC2626', bgColor: '#FEE2E2', label: 'Urgent' };
+        return { color: '#DC2626', bgColor: softBg('#FEE2E2'), label: 'Urgent' };
       case 'high':
-        return { color: '#EA580C', bgColor: '#FFEDD5', label: 'High' };
+        return { color: '#EA580C', bgColor: softBg('#FFEDD5'), label: 'High' };
       case 'medium':
-        return { color: '#F59E0B', bgColor: '#FEF3C7', label: 'Medium' };
+        return { color: '#F59E0B', bgColor: softBg('#FEF3C7'), label: 'Medium' };
       default:
-        return { color: '#64748B', bgColor: '#F1F5F9', label: 'Low' };
+        return { color: '#64748B', bgColor: softBg('#F1F5F9'), label: 'Low' };
     }
   };
 
@@ -290,13 +298,14 @@ export default function StudentReportDetail() {
       {report.photoEvidence && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Photo Evidence</Text>
-          <View style={styles.photoCard}>
+          <TouchableOpacity style={styles.photoCard} onPress={() => setShowEvidence(true)}>
             <Image 
               source={{ uri: report.photoEvidence }} 
               style={styles.evidencePhoto}
               resizeMode="cover"
             />
-          </View>
+            <Text style={styles.evidenceHint}>Tap to view</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -306,7 +315,7 @@ export default function StudentReportDetail() {
         <View style={styles.infoCard}>
           {report.isAnonymous ? (
             <View style={styles.anonymousBadge}>
-              <User size={18} color="#6366F1" />
+              <User size={18} color={colors.primary} />
               <Text style={styles.anonymousText}>Submitted Anonymously</Text>
             </View>
           ) : (
@@ -378,12 +387,37 @@ export default function StudentReportDetail() {
         </View>
       )}
 
+      <Modal visible={showEvidence} transparent animationType="fade">
+        <View style={styles.evidenceModalOverlay}>
+          <View style={styles.evidenceModalActions}>
+            <TouchableOpacity
+              style={styles.evidenceActionButton}
+              onPress={() => {
+                if (report.photoEvidence) {
+                  Linking.openURL(report.photoEvidence).catch(() => {});
+                }
+              }}
+            >
+              <Text style={styles.evidenceActionText}>Open</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.evidenceActionButton} onPress={() => setShowEvidence(false)}>
+              <Text style={styles.evidenceActionText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            source={{ uri: report.photoEvidence }}
+            style={styles.evidenceModalImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
+
       <View style={styles.bottomPadding} />
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -430,20 +464,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+    borderLeftColor: colors.error,
   },
   declineReasonTitle: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#991B1B',
+    color: isDark ? colors.error : '#991B1B',
     marginBottom: 6,
   },
   declineReasonText: {
     fontSize: 14,
-    color: '#B91C1C',
+    color: isDark ? colors.textSecondary : '#B91C1C',
     lineHeight: 20,
   },
   section: {
@@ -561,19 +595,55 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
+  evidenceHint: {
+    paddingVertical: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    color: colors.textSecondary,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  evidenceModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  evidenceModalActions: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 12,
+  },
+  evidenceActionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  evidenceActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  evidenceModalImage: {
+    width: '100%',
+    height: '80%',
+  },
   anonymousBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 8,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: isDark ? `${colors.primary}1A` : '#EEF2FF',
     borderRadius: 8,
   },
   anonymousText: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: '#6366F1',
+    color: colors.primary,
   },
   timelineCard: {
     backgroundColor: colors.surface,

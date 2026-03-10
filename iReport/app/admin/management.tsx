@@ -48,12 +48,12 @@ import {
   StaffPermission,
 } from '@/types';
 import { STAFF_POSITIONS, SUBJECT_SPECIALIZATIONS, TEACHER_RANKS, CLUSTER_ROLES, STAFF_PERMISSIONS } from '@/constants/staff';
-import colors from '@/constants/colors';
 
 type TabType = 'teachers' | 'grades';
 
 export default function ManagementPage() {
   const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
   const { currentUser, checkPermission } = useAuth();
   const { students, gradeLevels, sections, createStudent, createGradeLevel, createSection, deleteGradeLevel, deleteSection, isCreatingStudent } = useStudents();
   const { staff, createStaff, isCreating: isCreatingStaff } = useStaff();
@@ -170,13 +170,17 @@ export default function ManagementPage() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const photoData = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
       if (type === 'student') {
-        setStudentForm(prev => ({ ...prev, profilePhoto: result.assets[0].uri }));
+        setStudentForm(prev => ({ ...prev, profilePhoto: photoData }));
       } else {
-        setStaffForm(prev => ({ ...prev, profilePhoto: result.assets[0].uri }));
+        setStaffForm(prev => ({ ...prev, profilePhoto: photoData }));
       }
     }
   };
@@ -1397,7 +1401,7 @@ export default function ManagementPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -1568,7 +1572,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#90C659',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,

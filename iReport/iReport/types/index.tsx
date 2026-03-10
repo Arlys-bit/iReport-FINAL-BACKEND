@@ -244,7 +244,7 @@ export interface LiveIncident {
   floor: string;
   room: string;
   incidentType: string;
-  description: string;
+  description?: string;
   status: LiveIncidentStatus;
   responders: LiveIncidentResponder[];
   createdAt: string;

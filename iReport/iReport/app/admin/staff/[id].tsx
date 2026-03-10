@@ -28,6 +28,7 @@ import {
 import { useStaff } from '@/contexts/StaffContext';
 import { useStudents } from '@/contexts/StudentsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { 
   StaffPosition, 
   SubjectSpecialization, 
@@ -42,12 +43,13 @@ import {
   CLUSTER_ROLES,
   STAFF_PERMISSIONS,
 } from '@/constants/staff';
-import colors from '@/constants/colors';
 
 export default function StaffProfile() {
   const { id } = useLocalSearchParams();
   const { staff, updateStaff, updatePermissions, changePassword, deleteStaff, isUpdating } = useStaff();
   const { gradeLevels, sections } = useStudents();
+  const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
   
   const staffMember = useMemo(() => {
     return staff.find(s => s.id === id);
@@ -405,7 +407,7 @@ export default function StaffProfile() {
               {(staffMember.clusterRole || editMode) && (
                 <View style={styles.infoRow}>
                   <View style={styles.infoIcon}>
-                    <Award size={20} color="#2563EB" />
+                    <Award size={20} color={colors.primary} />
                   </View>
                   <View style={styles.infoContent}>
                     <Text style={styles.infoLabel}>Cluster Role</Text>
@@ -841,7 +843,10 @@ export default function StaffProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => {
+  const softBg = (hex: string, alphaLight = '1A', alphaDark = '33') => `${hex}${isDark ? alphaDark : alphaLight}`;
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -953,7 +958,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   deleteButton: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: softBg(colors.error),
   },
   deleteButtonText: {
     color: colors.error,
@@ -1002,7 +1007,7 @@ const styles = StyleSheet.create({
     fontWeight: '500' as const,
   },
   clusterRoleText: {
-    color: '#2563EB',
+    color: colors.primary,
     fontWeight: '600' as const,
   },
   editPickerButton: {
@@ -1046,11 +1051,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: softBg(colors.primary),
   },
   permissionChipText: {
     fontSize: 13,
-    color: '#1E40AF',
+    color: colors.primary,
     fontWeight: '500' as const,
   },
   editPermissionsButton: {
@@ -1082,12 +1087,12 @@ const styles = StyleSheet.create({
   securityNote: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: softBg(colors.warning),
     borderRadius: 8,
   },
   securityNoteText: {
     fontSize: 13,
-    color: '#92400E',
+    color: colors.text,
   },
   saveButtonContainer: {
     padding: 24,
@@ -1295,4 +1300,5 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: colors.primary,
   },
-});
+  });
+};

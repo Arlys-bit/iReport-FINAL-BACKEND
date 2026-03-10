@@ -65,7 +65,7 @@ const LiveIncidentSchema: Schema = new Schema(
     },
     description: {
       type: String,
-      required: true,
+      default: '',
     },
     status: {
       type: String,

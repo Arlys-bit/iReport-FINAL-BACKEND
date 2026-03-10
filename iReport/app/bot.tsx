@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { Send } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import colors from '@/constants/colors';
+import { botApi } from '@/utils/api';
 
 interface Message {
   id: string;
@@ -22,23 +22,11 @@ interface Message {
   timestamp: Date;
 }
 
-const SYSTEM_PROMPT = `You are a helpful and supportive bot for the iReport app, which helps students report bullying incidents safely and anonymously.
-
-You ONLY answer questions related to:
-1. Bullying prevention and how to handle being bullied
-2. How to use the iReport app to report incidents
-3. Student safety and wellbeing
-4. What to do if you witness bullying
-5. How to support victims of bullying
-6. Creating incident reports in the app
-
-If someone asks about topics unrelated to bullying or the iReport app, politely redirect them back to bullying-related topics.
-Always be empathetic, supportive, and helpful. Keep responses concise and clear.`;
-
 export default function BotScreen() {
   const router = useRouter();
   const { currentUser, isLoading } = useAuth();
   const { colors } = useSettings();
+  const styles = getStyles(colors);
   const [messages, setMessages] = useState([
     {
       id: '1',
@@ -50,47 +38,14 @@ export default function BotScreen() {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Call Groq API with bullying-focused system prompt
+  // Call backend bot API
   const getBotResponse = async (userMessage: string): Promise<string> => {
     try {
-      const apiKey = process.env.EXPO_PUBLIC_GROQ_API_KEY;
-      if (!apiKey) {
-        console.error('Groq API key not found in environment variables');
-        return 'API key not configured. Please check your environment variables.';
-      }
-
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [
-            {
-              role: 'system',
-              content: SYSTEM_PROMPT,
-            },
-            {
-              role: 'user',
-              content: userMessage,
-            },
-          ],
-          max_tokens: 200,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data?.choices?.[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+      const response: any = await botApi.sendMessage(userMessage);
+      const reply = response?.reply || response?.data?.reply || '';
+      return reply || 'Sorry, I couldn\'t generate a response.';
     } catch (error: any) {
-      console.error('Error calling Groq API:', error);
+      console.error('Error calling bot API:', error);
       const errorMessage = error?.message || error?.error?.message || 'Unknown error';
       console.error('Error details:', errorMessage);
       return `Sorry, I encountered an error: ${errorMessage}`;
@@ -222,7 +177,7 @@ export default function BotScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

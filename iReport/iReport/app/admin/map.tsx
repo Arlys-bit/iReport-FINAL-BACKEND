@@ -84,6 +84,7 @@ function PulsingDot({ color, size = 14 }: { color: string; size?: number }) {
 
 export default function MapScreen() {
   const { colors, isDark } = useSettings();
+  const styles = getStyles(colors, isDark);
   const { reports } = useReports();
   const { currentUser } = useAuth();
   const buildingsCtx = useBuildings();
@@ -267,7 +268,13 @@ export default function MapScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: 'School Map', headerShown: true }} />
+      <Stack.Screen options={{ 
+        title: 'School Map',
+        headerShown: true,
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: { color: colors.text }
+      }} />
       
       {activeIncidents.length > 0 && (
         <TouchableOpacity 
@@ -459,11 +466,11 @@ export default function MapScreen() {
                 <View style={styles.reportMeta}>
                   <View style={[
                     styles.respondersBadge,
-                    { backgroundColor: incident.responders.length > 0 ? '#DCFCE7' : '#FEE2E2' }
+                    { backgroundColor: incident.responders.length > 0 ? (isDark ? `${colors.success}1A` : '#DCFCE7') : (isDark ? `${colors.error}1A` : '#FEE2E2') }
                   ]}>
                     <Text style={[
                       styles.respondersBadgeText,
-                      { color: incident.responders.length > 0 ? '#166534' : '#DC2626' }
+                      { color: incident.responders.length > 0 ? colors.success : colors.error }
                     ]}>
                       {incident.responders.length > 0 
                         ? `${incident.responders.length} Responding` 
@@ -801,18 +808,18 @@ export default function MapScreen() {
         );
       }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   legend: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
     justifyContent: 'center',
     gap: 20,
   },
@@ -828,7 +835,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '500' as const,
   },
   content: {
@@ -841,13 +848,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginHorizontal: 16,
     marginTop: 16,
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   managementInfo: {
     flexDirection: 'row',
@@ -857,45 +864,45 @@ const styles = StyleSheet.create({
   managementText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#374151',
+    color: colors.text,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryDark,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
     gap: 6,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 14,
     fontWeight: '600' as const,
   },
   mapContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     margin: 16,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   mapTitle: {
     fontSize: 20,
     fontWeight: 'bold' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   mapSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 20,
   },
   buildingsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: 12,
     padding: 12,
     gap: 12,
@@ -905,7 +912,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   building: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     borderWidth: 2,
     overflow: 'hidden',
@@ -936,7 +943,7 @@ const styles = StyleSheet.create({
   floor: {
     minHeight: 28,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
@@ -945,7 +952,7 @@ const styles = StyleSheet.create({
   },
   floorLabel: {
     fontSize: 10,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '600' as const,
   },
   alertsRow: {
@@ -959,7 +966,7 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: colors.surface,
   },
   liveAlertDotInline: {
     marginRight: 2,
@@ -979,21 +986,21 @@ const styles = StyleSheet.create({
   },
   emptyMapText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textLight,
     marginTop: 12,
     marginBottom: 16,
   },
   emptyAddButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
+    backgroundColor: isDark ? colors.surfaceSecondary : '#EEF2FF',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
   },
   emptyAddButtonText: {
-    color: '#6366F1',
+    color: colors.primaryDark,
     fontSize: 14,
     fontWeight: '600' as const,
   },
@@ -1003,20 +1010,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 12,
   },
   reportCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   reportCardSelected: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FEF2F2',
+    borderColor: colors.error,
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEF2F2',
   },
   reportHeader: {
     flexDirection: 'row',
@@ -1033,12 +1040,12 @@ const styles = StyleSheet.create({
   },
   reportLocation: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '600' as const,
     flex: 1,
   },
   urgentTag: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1048,17 +1055,17 @@ const styles = StyleSheet.create({
   urgentTagText: {
     fontSize: 11,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   reportType: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   reportDescription: {
     fontSize: 14,
-    color: '#4B5563',
+    color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -1067,16 +1074,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.borderLight,
   },
   reportStudent: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontWeight: '500' as const,
   },
   reportTime: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textLight,
   },
   emptyState: {
     alignItems: 'center',
@@ -1089,12 +1096,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#10B981',
+    color: colors.success,
     marginBottom: 4,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   liveAlertBanner: {
     flexDirection: 'row',
@@ -1122,7 +1129,7 @@ const styles = StyleSheet.create({
   },
   liveAlertSubtitle: {
     fontSize: 12,
-    color: '#FEE2E2',
+    color: isDark ? colors.surface : '#FEE2E2',
     marginTop: 2,
   },
 
@@ -1136,7 +1143,7 @@ const styles = StyleSheet.create({
   liveTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1147,7 +1154,7 @@ const styles = StyleSheet.create({
   liveTagText: {
     fontSize: 11,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   respondersBadge: {
     paddingHorizontal: 10,
@@ -1165,13 +1172,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   viewAllBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   viewAllBtnText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 12,
     fontWeight: '600' as const,
   },
@@ -1183,7 +1190,7 @@ const styles = StyleSheet.create({
   liveModalLabel: {
     fontSize: 14,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
     letterSpacing: 1,
   },
   liveDetailSection: {
@@ -1192,7 +1199,7 @@ const styles = StyleSheet.create({
   liveDetailLabel: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1200,7 +1207,7 @@ const styles = StyleSheet.create({
   liveLocationBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEF2F2',
     padding: 12,
     borderRadius: 10,
     gap: 12,
@@ -1208,15 +1215,15 @@ const styles = StyleSheet.create({
   liveLocationPrimary: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   liveLocationSecondary: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   liveTypeBox: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1225,32 +1232,32 @@ const styles = StyleSheet.create({
   liveTypeText: {
     fontSize: 14,
     fontWeight: 'bold' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   liveDescriptionText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
     lineHeight: 22,
   },
   liveReporterText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
     fontWeight: '500' as const,
   },
   liveTimeText: {
     fontSize: 15,
-    color: '#374151',
+    color: colors.text,
   },
   noRespondersText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textLight,
     fontStyle: 'italic',
   },
   responderItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSecondary,
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -1258,21 +1265,21 @@ const styles = StyleSheet.create({
   responderName: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   responderRole: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   goToLiveBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
   },
   goToLiveBtnText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '600' as const,
   },
@@ -1282,7 +1289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '85%',
@@ -1293,12 +1300,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold' as const,
-    color: '#111827',
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -1312,18 +1319,18 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#374151',
+    color: colors.text,
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#111827',
+    color: colors.text,
   },
   floorSelectorContainer: {
     marginBottom: 20,
@@ -1337,23 +1344,23 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
   },
   floorButtonSelected: {
-    backgroundColor: '#EEF2FF',
-    borderColor: '#6366F1',
+    backgroundColor: isDark ? colors.surfaceSecondary : '#EEF2FF',
+    borderColor: colors.primaryDark,
   },
   floorButtonText: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   floorButtonTextSelected: {
-    color: '#6366F1',
+    color: colors.primaryDark,
   },
   colorPickerContainer: {
     marginBottom: 20,
@@ -1377,7 +1384,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 12,
     padding: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: 10,
   },
   colorOption: {
@@ -1389,7 +1396,7 @@ const styles = StyleSheet.create({
   },
   colorOptionSelected: {
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -1405,54 +1412,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleActive: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: isDark ? `${colors.success}1A` : '#DCFCE7',
   },
   toggleInactive: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? `${colors.error}1A` : '#FEE2E2',
   },
   toggleText: {
     fontSize: 14,
     fontWeight: '600' as const,
   },
   toggleTextActive: {
-    color: '#16A34A',
+    color: colors.success,
   },
   toggleTextInactive: {
-    color: '#DC2626',
+    color: colors.error,
   },
   modalFooter: {
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     gap: 12,
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 10,
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryDark,
     alignItems: 'center',
   },
   saveButtonDisabled: {
-    backgroundColor: '#A5B4FC',
+    backgroundColor: colors.primary,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#FFFFFF',
+    color: colors.surface,
   },
    mapButton: {
     position: 'absolute',
@@ -1460,19 +1467,19 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryDark,
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 30,
     gap: 8,
-    shadowColor: '#6366F1',
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   mapButtonText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 14,
     fontWeight: '600' as const,
   },
@@ -1480,7 +1487,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,

@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { X, Search, Users, Plus, ChevronRight, Camera, Shield, ChevronDown } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStaff } from '@/contexts/StaffContext';
+import { useStudents } from '@/contexts/StudentsContext';
 import { StaffMember, StaffPosition, SubjectSpecialization, TeacherRank, ClusterRole, StaffPermission } from '@/types';
 import { STAFF_POSITIONS, SUBJECT_SPECIALIZATIONS, TEACHER_RANKS, CLUSTER_ROLES, STAFF_PERMISSIONS } from '@/constants/staff';
 import colors from '@/constants/colors';
@@ -25,6 +26,7 @@ export default function StaffManagementScreen() {
   const router = useRouter();
   const { users, currentUser } = useAuth();
   const { staff, createStaff, isCreating } = useStaff() as any;
+  const { gradeLevels, sections } = useStudents();
   const [activeTab, setActiveTab] = useState('students' as 'students' | 'teachers');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -123,10 +125,14 @@ export default function StaffManagementScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setProfilePhoto(result.assets[0].uri);
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const photoData = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : asset.uri;
+      setProfilePhoto(photoData);
     }
   };
 
@@ -191,6 +197,33 @@ export default function StaffManagementScreen() {
     return CLUSTER_ROLES.find(c => c.key === cr)?.name || cr;
   };
 
+  const getGradeName = (gradeIdOrName: string | undefined) => {
+    if (!gradeIdOrName) return 'N/A';
+    const byId = gradeLevels.find(g => g.id === gradeIdOrName);
+    if (byId) return byId.name;
+    const byName = gradeLevels.find(g => g.name === gradeIdOrName);
+    return byName?.name || gradeIdOrName;
+  };
+
+  const getSectionName = (sectionIdOrName: string | undefined) => {
+    if (!sectionIdOrName) return 'N/A';
+    const byId = sections.find(s => s.id === sectionIdOrName);
+    if (byId) return byId.name;
+    const byName = sections.find(s => s.name === sectionIdOrName);
+    return byName?.name || sectionIdOrName;
+  };
+
+  const getStudentGradeSection = (user: any) => {
+    const gradeRaw = user?.gradeLevelId || user?.gradeLevel;
+    const sectionRaw = user?.sectionId || user?.section;
+    const gradeName = getGradeName(gradeRaw);
+    const sectionName = getSectionName(sectionRaw);
+    if (gradeName === 'N/A' && sectionName === 'N/A') return 'Not assigned';
+    if (gradeName === 'N/A') return `Section ${sectionName}`;
+    if (sectionName === 'N/A') return `${gradeName}`;
+    return `${gradeName} - Section ${sectionName}`;
+  };
+
   const UserCard: any = ({ user }: { user: any }) => {
     return (
       <TouchableOpacity style={styles.userCard}>
@@ -209,7 +242,7 @@ export default function StaffManagementScreen() {
             <>
               <Text style={styles.userMeta}>LRN: {user.lrn || 'N/A'}</Text>
               <Text style={styles.userMeta}>
-                Grade {user.gradeLevel} - {user.section}
+                {getStudentGradeSection(user)}
               </Text>
             </>
           ) : (
